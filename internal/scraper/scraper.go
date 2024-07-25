@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	errorsUtil "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
@@ -11,13 +12,21 @@ import (
 )
 
 type ParsedProduct struct {
-	Name       string
-	Price      string
-	PricePerKg string
-	Unit       string
-	Link       string
-	Image      *[]byte
-	AddButton  *rod.Element
+	Name         string
+	Price        string
+	PricePerKg   string
+	Unit         string
+	Link         string
+	Image        *[]byte
+	Description  string
+	Calories     string
+	Protein      string
+	Fat          string
+	SaturatedFat string
+	Carbs        string
+	Sugar        string
+	Fiber        string
+	AddButton    *rod.Element
 }
 
 type Scraper struct {
@@ -33,6 +42,8 @@ func NewScraper() *Scraper {
 	}
 }
 
+// todo better error messages -> now it just says: "Error: cannot find element"
+// todo separate the code into smaller functions
 func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 	searchUrl, err := urlParams.GetUrl(search)
 	if err != nil {
@@ -64,22 +75,24 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 		return nil, err
 	}
 
-	err = page.WaitElementsMoreThan("[data-product-id]", 1)
+	productSelector := "[data-tid='product-box']"
+	err = page.WaitElementsMoreThan(productSelector, 1)
 	if err != nil {
-		return nil, err
+		return nil, errorsUtil.ElementNotFoundError(err, productSelector)
 	}
 
-	products, err := page.Elements("[data-product-id]")
+	products, err := page.Elements(productSelector)
 	if err != nil {
-		return nil, err
+		return nil, errorsUtil.ElementNotFoundError(err, productSelector)
 	}
 
 	parsedProducts := make([]*ParsedProduct, 0, len(products))
 
 	for _, product := range products {
-		nameElement, err := product.Element("a[data-tid='product-box__name']")
+		nameSelector := "a[data-tid='product-box__name']"
+		nameElement, err := product.Element(nameSelector)
 		if err != nil {
-			return nil, err
+			return nil, errorsUtil.ElementNotFoundError(err, nameSelector)
 		}
 
 		name, err := nameElement.Text()
@@ -87,14 +100,16 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 			return nil, err
 		}
 
-		href, err := nameElement.Attribute("href")
+		hrefAttribute := "href"
+		href, err := nameElement.Attribute(hrefAttribute)
 		if err != nil {
-			return nil, err
+			return nil, errorsUtil.ElementNotFoundError(err, hrefAttribute)
 		}
 
-		unitElement, err := product.Element(".attributes")
+		unitSelector := ".attributes"
+		unitElement, err := product.Element(unitSelector)
 		if err != nil {
-			return nil, err
+			return nil, errorsUtil.ElementNotFoundError(err, unitSelector)
 		}
 
 		unit, err := unitElement.Text()
@@ -102,9 +117,10 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 			return nil, err
 		}
 
-		imageElement, err := product.Element("img")
+		imageSelector := "img"
+		imageElement, err := product.Element(imageSelector)
 		if err != nil {
-			return nil, err
+			return nil, errorsUtil.ElementNotFoundError(err, imageSelector)
 		}
 
 		image, err := imageElement.Resource()
@@ -112,20 +128,23 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 			return nil, err
 		}
 
+		pricePrefix := ""
 		pricePrefixElement, err := product.Element(".price__prefix")
-		if err != nil {
+		if _, ok := err.(*rod.ElementNotFoundError); !ok {
 			return nil, err
+		} else if err == nil {
+			pricePrefix, err = pricePrefixElement.Text()
+			if err != nil {
+				return nil, err
+			}
+
+			pricePrefix += " "
 		}
 
-		pricePrefix, err := pricePrefixElement.Text()
-		err, ok := err.(*rod.ObjectNotFoundError)
-		if !ok {
-			return nil, err
-		}
-
-		priceElement, err := product.Element("[data-tid='product-price']")
+		priceSelector := "[data-tid='product-price']"
+		priceElement, err := product.Element(priceSelector)
 		if err != nil {
-			return nil, err
+			return nil, errorsUtil.ElementNotFoundError(err, priceSelector)
 		}
 
 		price, err := priceElement.Text()
@@ -133,9 +152,10 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 			return nil, err
 		}
 
-		pricePerKgElement, err := product.Element("[aria-label='Cena'] > *:last-child")
+		pricePerKgSelector := "[aria-label='Cena'] > *:last-child"
+		pricePerKgElement, err := product.Element(pricePerKgSelector)
 		if err != nil {
-			return nil, err
+			return nil, errorsUtil.ElementNotFoundError(err, pricePerKgSelector)
 		}
 
 		pricePerKg, err := pricePerKgElement.Text()
@@ -143,19 +163,50 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 			return nil, err
 		}
 
-		buttonElement, err := product.Element("[data-tid='product-to-cart__to-cart']")
+		buttonSelector := "[data-tid='product-to-cart__to-cart']"
+		buttonElement, err := product.Element(buttonSelector)
+		if err != nil {
+			return nil, errorsUtil.ElementNotFoundError(err, buttonSelector)
+		}
+
+		fmt.Println(*href)
+
+		indgredientsPage, err := browser.Page(proto.TargetCreateTarget{
+			URL: *href + "#ingredients",
+		})
+		if err != nil {
+			return nil, err
+		}
+		caloriesRegex := "\\d* kcal"
+		caloriesElement, err := indgredientsPage.ElementR("td", caloriesRegex)
+		if err != nil {
+			return nil, errorsUtil.ElementNotFoundError(err, caloriesRegex)
+		}
+
+		fmt.Println("calories")
+
+		calories, err := caloriesElement.Text()
 		if err != nil {
 			return nil, err
 		}
 
+		fmt.Println(calories)
+
 		parsedProducts = append(parsedProducts, &ParsedProduct{
 			Name:       name,
-			Price:      fmt.Sprintf("%s %s", pricePrefix, price),
+			Price:      fmt.Sprintf("%s%s", pricePrefix, price),
 			PricePerKg: pricePerKg,
 			Unit:       unit,
 			Link:       *href,
 			Image:      &image,
-			AddButton:  buttonElement,
+			Calories:   calories,
+			// Protein      :
+			// Fat          :
+			// SaturatedFat :
+			// Carbs        :
+			// Sugar        :
+			// Fiber        :
+			AddButton: buttonElement,
 		})
 	}
 
