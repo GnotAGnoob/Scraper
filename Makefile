@@ -4,4 +4,4 @@ con: ./cmd/console/main.go
 
 .PHONY: con-dev
 con-dev:
-	@$(MAKE) con ARGS='-rod="show,slow=1s,trace"'
+	@$(MAKE) con ARGS='-rod="show,slow=10s,trace,devtools"'
