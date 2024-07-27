@@ -29,7 +29,13 @@ func GetOrderBy() orderBy {
 	return orderByDefinitions
 }
 
-func GetUrl(search string) (*url.URL, error) {
+type SearchOptions struct {
+	OrderBy  string
+	Path     string
+	Fragment string
+}
+
+func CreateKosikUrl(search string, opt SearchOptions) (*url.URL, error) {
 	if len(search) == 0 {
 		return nil, errors.New("search term is empty")
 	}
@@ -40,7 +46,7 @@ func GetUrl(search string) (*url.URL, error) {
 	}
 
 	if searchUrl.IsAbs() {
-		kosikUrl := constants.GetKosikSearchUrl()
+		kosikUrl := constants.GetKosikUrl()
 
 		if searchUrl.Hostname() != (&kosikUrl).Hostname() {
 			return nil, errors.New("invalid URL: hostname does not match")
@@ -53,14 +59,26 @@ func GetUrl(search string) (*url.URL, error) {
 			return nil, errors.New("no search term in URL or category in Path")
 		}
 	} else {
-		kosikUrl := constants.GetKosikSearchUrl()
+		kosikUrl := constants.GetKosikUrl()
 		searchUrl = &kosikUrl
 
+		kosikUrl.Path = opt.Path
+		kosikUrl.Fragment = opt.Fragment
+
 		params := url.Values{}
-		params.Add(ORDER_BY, orderByDefinitions.UnitPriceAsc)
+		params.Add(ORDER_BY, opt.OrderBy)
 		params.Add(SEARCH, search)
 
 		searchUrl.RawQuery = params.Encode()
 	}
 	return searchUrl, nil
+}
+
+func CreateKosikSearchUrl(search string, orderBy string) (*url.URL, error) {
+	opt := SearchOptions{
+		OrderBy: orderBy,
+		Path:    constants.KOSIK_SEARCH_ENDPOINT,
+	}
+
+	return CreateKosikUrl(search, opt)
 }

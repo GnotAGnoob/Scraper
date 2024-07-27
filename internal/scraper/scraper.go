@@ -45,7 +45,7 @@ func NewScraper() *Scraper {
 // todo better error messages -> now it just says: "Error: cannot find element"
 // todo separate the code into smaller functions
 func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
-	searchUrl, err := urlParams.GetUrl(search)
+	searchUrl, err := urlParams.CreateKosikSearchUrl(search, urlParams.GetOrderBy().UnitPriceAsc)
 	if err != nil {
 		return nil, err
 	}
@@ -169,10 +169,17 @@ func (s *Scraper) GetKosikItems(search string) ([]*ParsedProduct, error) {
 			return nil, errorsUtil.ElementNotFoundError(err, buttonSelector)
 		}
 
-		fmt.Println(*href)
+		ingredientsUrl, err := urlParams.CreateKosikUrl(*href, urlParams.SearchOptions{
+			Fragment: "ingredients",
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("Ingredients URL: %s\n", ingredientsUrl.String())
 
 		indgredientsPage, err := browser.Page(proto.TargetCreateTarget{
-			URL: *href + "#ingredients",
+			URL: ingredientsUrl.String(),
 		})
 		if err != nil {
 			return nil, err
