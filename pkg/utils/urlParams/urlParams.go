@@ -30,12 +30,12 @@ func GetOrderBy() orderBy {
 }
 
 type SearchOptions struct {
-	OrderBy  string
-	Path     string
-	Fragment string
+	Search  string
+	OrderBy string
+	Path    string
 }
 
-func CreateKosikUrl(search string, opt SearchOptions) (*url.URL, error) {
+func CreateSearchUrl(search string) (*url.URL, error) {
 	if len(search) == 0 {
 		return nil, errors.New("search term is empty")
 	}
@@ -46,7 +46,7 @@ func CreateKosikUrl(search string, opt SearchOptions) (*url.URL, error) {
 	}
 
 	if searchUrl.IsAbs() {
-		kosikUrl := constants.GetKosikUrl()
+		kosikUrl := constants.GetKosikSearchUrl()
 
 		if searchUrl.Hostname() != (&kosikUrl).Hostname() {
 			return nil, errors.New("invalid URL: hostname does not match")
@@ -59,14 +59,11 @@ func CreateKosikUrl(search string, opt SearchOptions) (*url.URL, error) {
 			return nil, errors.New("no search term in URL or category in Path")
 		}
 	} else {
-		kosikUrl := constants.GetKosikUrl()
+		kosikUrl := constants.GetKosikSearchUrl()
 		searchUrl = &kosikUrl
 
-		kosikUrl.Path = opt.Path
-		kosikUrl.Fragment = opt.Fragment
-
 		params := url.Values{}
-		params.Add(ORDER_BY, opt.OrderBy)
+		params.Add(ORDER_BY, orderByDefinitions.UnitPriceAsc)
 		params.Add(SEARCH, search)
 
 		searchUrl.RawQuery = params.Encode()
@@ -74,11 +71,34 @@ func CreateKosikUrl(search string, opt SearchOptions) (*url.URL, error) {
 	return searchUrl, nil
 }
 
-func CreateKosikSearchUrl(search string, orderBy string) (*url.URL, error) {
-	opt := SearchOptions{
-		OrderBy: orderBy,
-		Path:    constants.KOSIK_SEARCH_ENDPOINT,
+func CreateUrlFromPath(path string) (*url.URL, error) {
+	if len(path) == 0 {
+		return nil, errors.New("path term is empty")
 	}
 
-	return CreateKosikUrl(search, opt)
+	pathUrl, err := url.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+
+	if pathUrl.IsAbs() {
+		kosikUrl := constants.GetKosikUrl()
+
+		if pathUrl.Hostname() != (&kosikUrl).Hostname() {
+			return nil, errors.New("invalid URL: hostname does not match")
+		}
+
+		params := pathUrl.Query()
+		isProduct := strings.HasPrefix(pathUrl.Path, "/p")
+
+		if _, ok := params[SEARCH]; !ok && !isProduct {
+			return nil, errors.New("no search term in URL or category in Path")
+		}
+	} else {
+		kosikUrl := constants.GetKosikUrl()
+		pathUrl = &kosikUrl
+
+		pathUrl.Path = path
+	}
+	return pathUrl, nil
 }
