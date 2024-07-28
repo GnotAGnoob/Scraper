@@ -1,8 +1,8 @@
 package scraper
 
 import (
-	"fmt"
 	"log"
+	"net/url"
 
 	errorsUtil "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
@@ -19,18 +19,18 @@ type nutrition struct {
 	Carbs        string
 	Sugar        string
 	Fiber        string
+	Ingredients  string
 }
 
 type ParsedProduct struct {
-	Name        string
-	Price       string
-	PricePerKg  string
-	Unit        string
-	Link        string
-	Image       *[]byte
-	Description string
-	Nutrition   *nutrition
-	AddButton   *rod.Element
+	Name       string
+	Price      string
+	PricePerKg string
+	Unit       string
+	Link       *url.URL
+	Image      *[]byte
+	Nutrition  *nutrition
+	AddButton  *rod.Element
 }
 
 type returnProduct struct {
@@ -113,12 +113,19 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 			}
 			parsedProduct.Name = name
 
+			url := &url.URL{}
 			hrefAttribute := "href"
 			href, err := nameElement.Attribute(hrefAttribute)
 			if err != nil {
 				errors = append(errors, errorsUtil.ElementNotFoundError(err, hrefAttribute))
+			} else {
+				url, err = urlParams.CreateUrlFromPath(*href)
+				if err != nil {
+					errors = append(errors, err)
+				}
+				url.Fragment = "ingredients"
 			}
-			parsedProduct.Link = *href
+			parsedProduct.Link = url
 		}
 
 		unitSelector := ".attributes"
@@ -188,112 +195,146 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 		parsedProduct.AddButton = buttonElement
 
-		ingredientsUrl, err := urlParams.CreateUrlFromPath(parsedProduct.Link)
-		if err != nil {
-			errors = append(errors, err)
-		}
-		ingredientsUrl.Fragment = "ingredients"
-
 		indgredientsPage, err := browser.Page(proto.TargetCreateTarget{
-			URL: ingredientsUrl.String(),
+			URL: parsedProduct.Link.String(),
 		})
 		if err != nil {
 			errors = append(errors, err)
 		} else {
-			nutrition := &nutrition{}
-			nutritionElement, err := indgredientsPage.Element("[data-tid='product-detail__nutrition_table']")
-			if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-				fmt.Printf("xxxxx: %T", err)
-				errors = append(errors, err)
-			} else if err == nil {
-				caloriesRegex := "\\d* kcal"
-				caloriesElement, err := nutritionElement.ElementR("td", caloriesRegex)
-				if err != nil {
-					errors = append(errors, errorsUtil.ElementNotFoundError(err, caloriesRegex))
+			imgSelector := "img"
+			err = indgredientsPage.WaitElementsMoreThan(imgSelector, 0) // there is always an image. Wait until javascript loads it
+			if err != nil {
+				errors = append(errors, errorsUtil.ElementNotFoundError(err, imgSelector))
+			} else {
+				nutrition := &nutrition{}
+
+				// todo sleeper
+				ingredientsElement, err := indgredientsPage.Element("[data-tid='product-detail__ingredients'] dd")
+				if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+					errors = append(errors, err)
+				} else if err == nil {
+					ingredients, err := ingredientsElement.Text()
+					if err != nil {
+						errors = append(errors, err)
+					}
+					nutrition.Ingredients = ingredients
 				}
 
-				calories, err := caloriesElement.Text()
-				if err != nil {
+				nutritionElement, err := indgredientsPage.Element("[data-tid='product-detail__nutrition_table']")
+				if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 					errors = append(errors, err)
-				}
-				nutrition.Calories = calories
+				} else if err == nil {
+					caloriesRegex := "\\d* kcal"
+					caloriesElement, err := nutritionElement.ElementR("td", caloriesRegex)
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						calories, err := caloriesElement.Text()
+						if err != nil {
+							errors = append(errors, err)
+						}
+						nutrition.Calories = calories
+					}
 
-				caloriesParentElement, err := caloriesElement.Parent()
-				if err != nil {
-					errors = append(errors, err)
-				} else {
-					// todo better selectors
-					// fatElement, err := caloriesParentElement.Next()
-					// if err != nil {
-					// 	errors = append(errors, err)
-					// } else {
-					// 	fat, err := fatElement.Text()
-					// 	if err != nil {
-					// 		errors = append(errors, err)
-					// 	}
-					// 	nutrition.Fat = fat
-					// }
+					fatElement, err := nutritionElement.ElementR("td", "Tuky")
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						fatValueElement, err := fatElement.Next()
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							fat, err := fatValueElement.Text()
+							if err != nil {
+								errors = append(errors, err)
+							}
+							nutrition.Fat = fat
+						}
+					}
 
-					// saturatedFatElement, err := fatElement.Next()
-					// if err != nil {
-					// 	errors = append(errors, err)
-					// } else {
-					// 	saturatedFat, err := saturatedFatElement.Text()
-					// 	if err != nil {
-					// 		errors = append(errors, err)
-					// 	}
-					// 	nutrition.SaturatedFat = saturatedFat
-					// }
+					saturatedFatElement, err := nutritionElement.ElementR("td", "Z toho nasycené mastné kyseliny")
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						saturatedFatValueElement, err := saturatedFatElement.Next()
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							saturatedFat, err := saturatedFatValueElement.Text()
+							if err != nil {
+								errors = append(errors, err)
+							}
+							nutrition.SaturatedFat = saturatedFat
+						}
+					}
 
-					// carbsElement, err := saturatedFatElement.Next()
-					// if err != nil {
-					// 	errors = append(errors, err)
-					// } else {
-					// 	carbs, err := carbsElement.Text()
-					// 	if err != nil {
-					// 		errors = append(errors, err)
-					// 	}
-					// 	nutrition.Carbs = carbs
-					// }
+					carbsElement, err := nutritionElement.ElementR("td", "Sacharidy")
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						carbsValueElement, err := carbsElement.Next()
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							carbs, err := carbsValueElement.Text()
+							if err != nil {
+								errors = append(errors, err)
+							}
+							nutrition.Carbs = carbs
+						}
+					}
 
-					// sugarElement, err := carbsElement.Next()
-					// if err != nil {
-					// 	errors = append(errors, err)
-					// } else {
-					// 	sugar, err := sugarElement.Text()
-					// 	if err != nil {
-					// 		errors = append(errors, err)
-					// 	}
-					// 	nutrition.Sugar = sugar
-					// }
+					sugarElement, err := nutritionElement.ElementR("td", "Z toho cukry")
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						sugarValueElement, err := sugarElement.Next()
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							sugar, err := sugarValueElement.Text()
+							if err != nil {
+								errors = append(errors, err)
+							}
+							nutrition.Sugar = sugar
+						}
+					}
 
-					// fiberElement, err := sugarElement.Next()
-					// if err != nil {
-					// 	errors = append(errors, err)
-					// } else {
-					// 	fiber, err := fiberElement.Text()
-					// 	if err != nil {
-					// 		errors = append(errors, err)
-					// 	}
-					// 	nutrition.Fiber = fiber
-					// }
+					fiberElement, err := nutritionElement.ElementR("td", "Vláknina")
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						fiberValueElement, err := fiberElement.Next()
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							fiber, err := fiberValueElement.Text()
+							if err != nil {
+								errors = append(errors, err)
+							}
+							nutrition.Fiber = fiber
+						}
+					}
 
-					// proteinElement, err := fiberElement.Next()
-					// if err != nil {
-					// 	errors = append(errors, err)
-					// } else {
-					// 	protein, err := proteinElement.Text()
-					// 	if err != nil {
-					// 		errors = append(errors, err)
-					// 	}
-					// 	nutrition.Protein = protein
-					// }
+					proteinElement, err := nutritionElement.ElementR("td", "Bílkoviny")
+					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+						errors = append(errors, err)
+					} else if err == nil {
+						proteinValueElement, err := proteinElement.Next()
+						if err != nil {
+							errors = append(errors, err)
+						} else {
+							protein, err := proteinValueElement.Text()
+							if err != nil {
+								errors = append(errors, err)
+							}
+							nutrition.Protein = protein
+						}
+					}
+					parsedProduct.Nutrition = nutrition
 				}
 			}
-			parsedProduct.Nutrition = nutrition
 		}
-
-		fmt.Println(parsedProduct, errors)
 
 		parsedProducts = append(parsedProducts, &returnProduct{
 			Product: parsedProduct,
