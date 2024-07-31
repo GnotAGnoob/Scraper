@@ -7,9 +7,16 @@ import (
 	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
 )
 
+// todo proper user input
+// todo proper info output
 func main() {
-	scraper := scraperLib.NewScraper()
-	products, err := scraper.GetKosikProducts("omacka k masu")
+	scraper, err := scraperLib.InitScraper()
+	if err != nil {
+		log.Fatalf("Error while initializing scraper: %v", err)
+	}
+	defer scraper.Cleanup()
+
+	products, err := scraper.GetKosikProducts("https://www.kosik.cz/c3154-skyry?orderBy=unit-price-asc")
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}

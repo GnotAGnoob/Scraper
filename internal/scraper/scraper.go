@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"fmt"
 	"log"
 	"net/url"
 
@@ -29,6 +30,7 @@ type ParsedProduct struct {
 	Unit       string
 	Link       *url.URL
 	Image      *[]byte
+	IsSoldOut  bool
 	Nutrition  *nutrition
 	AddButton  *rod.Element
 }
@@ -39,58 +41,73 @@ type returnProduct struct {
 }
 
 type Scraper struct {
-	launcher *launcher.Launcher
+	browser *rod.Browser
 }
 
-func NewScraper() *Scraper {
-	return &Scraper{
-		// leakless is a binary that prevents zombie processes
-		// but the problem is that windows defender detects it as a virus
-		// because according to internet, it is used in many viruses
-		launcher: launcher.New().Leakless(false),
+var scrapper = &Scraper{}
+
+func InitScraper() (*Scraper, error) {
+	if scrapper.browser != nil {
+		return scrapper, nil
+	}
+
+	// leakless is a binary that prevents zombie processes
+	// but the problem is that windows defender detects it as a virus
+	// because according to internet, it is used in many viruses
+	launcher := launcher.New().Leakless(false)
+	controlUrl, err := launcher.Launch()
+	if err != nil {
+		return nil, err
+	}
+
+	browser := rod.New().NoDefaultDevice().ControlURL(controlUrl)
+	if error := browser.Connect(); error != nil {
+		return nil, error
+	}
+	scrapper.browser = browser
+	return scrapper, nil
+}
+
+func (s *Scraper) Cleanup() {
+	err := s.browser.Close()
+	if err != nil {
+		log.Fatalf("Error failed to close browser: %v", err)
 	}
 }
 
 // todo separate the code into smaller reusable functions
 // todo handle timeout => send what was found and errors for the rest
 // todo goroutines for each product and for nutrition page
+// todo debug mode with own logging
+// todo parse things to floats / ints
 func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 	searchUrl, err := urlParams.CreateSearchUrl(search)
 	if err != nil {
 		return nil, err
 	}
 
-	controlUrl, err := s.launcher.Launch()
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println("searchUrl: ", searchUrl)
 
-	browser := rod.New().NoDefaultDevice().ControlURL(controlUrl)
-
-	if error := browser.Connect(); error != nil {
-		return nil, error
-	}
-	defer func() {
-		err := browser.Close()
-		if err != nil {
-			log.Fatalf("Error: %v", err)
-		}
-
-	}()
-
-	page, err := browser.Page(proto.TargetCreateTarget{
+	page, err := s.browser.Page(proto.TargetCreateTarget{
 		URL: searchUrl.String(),
 	})
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		err := page.Close()
+		if err != nil {
+			log.Fatalf("Error failed to close page: %v", err)
+		}
+	}()
 
-	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
-	err = page.WaitElementsMoreThan(productSelector, 1)
+	widgetSelector := ".page-products-widgets"
+	err = page.WaitElementsMoreThan(widgetSelector, 0)
 	if err != nil {
-		return nil, errorsUtil.ElementNotFoundError(err, productSelector)
+		return nil, errorsUtil.ElementNotFoundError(err, widgetSelector)
 	}
 
+	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
 	products, err := page.Elements(productSelector)
 	if err != nil {
 		return nil, errorsUtil.ElementNotFoundError(err, productSelector)
@@ -102,8 +119,15 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		errors := []error{}
 		parsedProduct := &ParsedProduct{}
 
+		test, err := product.ElementR("span", "/vyprodáno/i")
+		fmt.Println("test: ", test, err)
+		if err == nil {
+			parsedProduct.IsSoldOut = true
+			// todo put this for thingy in own function and defer out of the loop
+		}
+
 		nameSelector := "a[data-tid='product-box__name']"
-		nameElement, err := product.Element(nameSelector)
+		nameElement, err := product.Sleeper(rod.NotFoundSleeper).Element(nameSelector)
 		if err != nil {
 			errors = append(errors, errorsUtil.ElementNotFoundError(err, nameSelector))
 		} else {
@@ -129,7 +153,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 
 		unitSelector := ".attributes"
-		unitElement, err := product.Element(unitSelector)
+		unitElement, err := product.Sleeper(rod.NotFoundSleeper).Element(unitSelector)
 		if err != nil {
 			errors = append(errors, errorsUtil.ElementNotFoundError(err, unitSelector))
 		} else {
@@ -141,7 +165,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 
 		imageSelector := "img"
-		imageElement, err := product.Element(imageSelector)
+		imageElement, err := product.Sleeper(rod.NotFoundSleeper).Element(imageSelector)
 		if err != nil {
 			errors = append(errors, errorsUtil.ElementNotFoundError(err, imageSelector))
 		} else {
@@ -153,7 +177,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 
 		pricePrefix := ""
-		pricePrefixElement, err := product.Element(".price__prefix")
+		pricePrefixElement, err := product.Sleeper(rod.NotFoundSleeper).Element(".price__prefix")
 		if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 			errors = append(errors, err)
 		} else if err == nil {
@@ -165,7 +189,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 
 		priceSelector := "[data-tid='product-price']"
-		priceElement, err := product.Element(priceSelector)
+		priceElement, err := product.Sleeper(rod.NotFoundSleeper).Element(priceSelector)
 		if err != nil {
 			errors = append(errors, errorsUtil.ElementNotFoundError(err, priceSelector))
 		} else {
@@ -177,7 +201,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 
 		pricePerKgSelector := "[aria-label='Cena'] > *:last-child"
-		pricePerKgElement, err := product.Element(pricePerKgSelector)
+		pricePerKgElement, err := product.Sleeper(rod.NotFoundSleeper).Element(pricePerKgSelector)
 		if err != nil {
 			errors = append(errors, errorsUtil.ElementNotFoundError(err, pricePerKgSelector))
 		} else {
@@ -189,13 +213,14 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 
 		buttonSelector := "[data-tid='product-to-cart__to-cart']"
-		buttonElement, err := product.Element(buttonSelector)
-		if err != nil {
-			errors = append(errors, errorsUtil.ElementNotFoundError(err, buttonSelector))
+		buttonElement, err := product.Sleeper(rod.NotFoundSleeper).Element(buttonSelector)
+		if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
+			errors = append(errors, err)
 		}
 		parsedProduct.AddButton = buttonElement
 
-		indgredientsPage, err := browser.Page(proto.TargetCreateTarget{
+		fmt.Printf("Product: %+v\n", parsedProduct.Link.String())
+		indgredientsPage, err := s.browser.Page(proto.TargetCreateTarget{
 			URL: parsedProduct.Link.String(),
 		})
 		if err != nil {
@@ -208,8 +233,13 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 			} else {
 				nutrition := &nutrition{}
 
-				// todo sleeper
-				ingredientsElement, err := indgredientsPage.Element("[data-tid='product-detail__ingredients'] dd")
+				test2, err := indgredientsPage.ElementR("button", "/vyprodáno/i")
+				fmt.Println("test2: ", test2, err)
+				if err == nil {
+					parsedProduct.IsSoldOut = true
+				}
+
+				ingredientsElement, err := indgredientsPage.Sleeper(rod.NotFoundSleeper).Element("[data-tid='product-detail__ingredients'] dd")
 				if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 					errors = append(errors, err)
 				} else if err == nil {
@@ -220,7 +250,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 					nutrition.Ingredients = ingredients
 				}
 
-				nutritionElement, err := indgredientsPage.Element("[data-tid='product-detail__nutrition_table']")
+				nutritionElement, err := indgredientsPage.Sleeper(rod.NotFoundSleeper).Element("[data-tid='product-detail__nutrition_table'][aria-describedby='Výživové hodnoty (na 100 g)']")
 				if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 					errors = append(errors, err)
 				} else if err == nil {
@@ -336,6 +366,10 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 			}
 		}
 
+		err = indgredientsPage.Close()
+		if err != nil {
+			log.Fatalf("Error failed to close ingredients page: %v", err)
+		}
 		parsedProducts = append(parsedProducts, &returnProduct{
 			Product: parsedProduct,
 			Errors:  errors,
