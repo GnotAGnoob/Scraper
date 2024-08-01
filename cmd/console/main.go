@@ -22,8 +22,8 @@ func main() {
 	}
 
 	for _, product := range *products {
-		if len(product.Errors) > 0 {
-			for _, err := range product.Errors {
+		if len(*product.Errors) > 0 {
+			for _, err := range *product.Errors {
 				fmt.Println(err)
 			}
 		}

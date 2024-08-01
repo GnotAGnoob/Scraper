@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/url"
 
-	errorsUtil "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
+	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/errorsUtils"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
@@ -37,7 +37,7 @@ type ParsedProduct struct {
 
 type returnProduct struct {
 	Product *ParsedProduct
-	Errors  []error
+	Errors  *[]error
 }
 
 type Scraper struct {
@@ -104,32 +104,31 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 	widgetSelector := ".page-products-widgets"
 	err = page.WaitElementsMoreThan(widgetSelector, 0)
 	if err != nil {
-		return nil, errorsUtil.ElementNotFoundError(err, widgetSelector)
+		return nil, errorsUtils.ElementNotFoundError(err, widgetSelector)
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
 	products, err := page.Elements(productSelector)
 	if err != nil {
-		return nil, errorsUtil.ElementNotFoundError(err, productSelector)
+		return nil, errorsUtils.ElementNotFoundError(err, productSelector)
 	}
 
 	parsedProducts := make([]*returnProduct, 0, len(products))
 
 	for _, product := range products[:2] {
+		// todo put into separate function and defer when soldout
 		errors := []error{}
 		parsedProduct := &ParsedProduct{}
 
-		test, err := product.ElementR("span", "/vyprodáno/i")
-		fmt.Println("test: ", test, err)
+		_, err := product.ElementR("span", "/vyprodáno/i")
 		if err == nil {
 			parsedProduct.IsSoldOut = true
-			// todo put this for thingy in own function and defer out of the loop
 		}
 
 		nameSelector := "a[data-tid='product-box__name']"
 		nameElement, err := product.Sleeper(rod.NotFoundSleeper).Element(nameSelector)
 		if err != nil {
-			errors = append(errors, errorsUtil.ElementNotFoundError(err, nameSelector))
+			errors = append(errors, errorsUtils.ElementNotFoundError(err, nameSelector))
 		} else {
 			name, err := nameElement.Text()
 			if err != nil {
@@ -141,7 +140,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 			hrefAttribute := "href"
 			href, err := nameElement.Attribute(hrefAttribute)
 			if err != nil {
-				errors = append(errors, errorsUtil.ElementNotFoundError(err, hrefAttribute))
+				errors = append(errors, errorsUtils.ElementNotFoundError(err, hrefAttribute))
 			} else {
 				url, err = urlParams.CreateUrlFromPath(*href)
 				if err != nil {
@@ -155,7 +154,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		unitSelector := ".attributes"
 		unitElement, err := product.Sleeper(rod.NotFoundSleeper).Element(unitSelector)
 		if err != nil {
-			errors = append(errors, errorsUtil.ElementNotFoundError(err, unitSelector))
+			errors = append(errors, errorsUtils.ElementNotFoundError(err, unitSelector))
 		} else {
 			unit, err := unitElement.Text()
 			if err != nil {
@@ -167,7 +166,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		imageSelector := "img"
 		imageElement, err := product.Sleeper(rod.NotFoundSleeper).Element(imageSelector)
 		if err != nil {
-			errors = append(errors, errorsUtil.ElementNotFoundError(err, imageSelector))
+			errors = append(errors, errorsUtils.ElementNotFoundError(err, imageSelector))
 		} else {
 			image, err := imageElement.Resource()
 			if err != nil {
@@ -191,7 +190,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		priceSelector := "[data-tid='product-price']"
 		priceElement, err := product.Sleeper(rod.NotFoundSleeper).Element(priceSelector)
 		if err != nil {
-			errors = append(errors, errorsUtil.ElementNotFoundError(err, priceSelector))
+			errors = append(errors, errorsUtils.ElementNotFoundError(err, priceSelector))
 		} else {
 			price, err := priceElement.Text()
 			if err != nil {
@@ -203,7 +202,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		pricePerKgSelector := "[aria-label='Cena'] > *:last-child"
 		pricePerKgElement, err := product.Sleeper(rod.NotFoundSleeper).Element(pricePerKgSelector)
 		if err != nil {
-			errors = append(errors, errorsUtil.ElementNotFoundError(err, pricePerKgSelector))
+			errors = append(errors, errorsUtils.ElementNotFoundError(err, pricePerKgSelector))
 		} else {
 			pricePerKg, err := pricePerKgElement.Text()
 			if err != nil {
@@ -219,160 +218,12 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 		parsedProduct.AddButton = buttonElement
 
-		fmt.Printf("Product: %+v\n", parsedProduct.Link.String())
-		indgredientsPage, err := s.browser.Page(proto.TargetCreateTarget{
-			URL: parsedProduct.Link.String(),
-		})
-		if err != nil {
-			errors = append(errors, err)
-		} else {
-			imgSelector := "img"
-			err = indgredientsPage.WaitElementsMoreThan(imgSelector, 0) // there is always an image. Wait until javascript loads it
-			if err != nil {
-				errors = append(errors, errorsUtil.ElementNotFoundError(err, imgSelector))
-			} else {
-				nutrition := &nutrition{}
+		ingredientsErrors := getIngredients(parsedProduct)
+		errors = append(errors, *ingredientsErrors...)
 
-				test2, err := indgredientsPage.ElementR("button", "/vyprodáno/i")
-				fmt.Println("test2: ", test2, err)
-				if err == nil {
-					parsedProduct.IsSoldOut = true
-				}
-
-				ingredientsElement, err := indgredientsPage.Sleeper(rod.NotFoundSleeper).Element("[data-tid='product-detail__ingredients'] dd")
-				if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-					errors = append(errors, err)
-				} else if err == nil {
-					ingredients, err := ingredientsElement.Text()
-					if err != nil {
-						errors = append(errors, err)
-					}
-					nutrition.Ingredients = ingredients
-				}
-
-				nutritionElement, err := indgredientsPage.Sleeper(rod.NotFoundSleeper).Element("[data-tid='product-detail__nutrition_table'][aria-describedby='Výživové hodnoty (na 100 g)']")
-				if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-					errors = append(errors, err)
-				} else if err == nil {
-					caloriesRegex := "\\d* kcal"
-					caloriesElement, err := nutritionElement.ElementR("td", caloriesRegex)
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						calories, err := caloriesElement.Text()
-						if err != nil {
-							errors = append(errors, err)
-						}
-						nutrition.Calories = calories
-					}
-
-					fatElement, err := nutritionElement.ElementR("td", "Tuky")
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						fatValueElement, err := fatElement.Next()
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							fat, err := fatValueElement.Text()
-							if err != nil {
-								errors = append(errors, err)
-							}
-							nutrition.Fat = fat
-						}
-					}
-
-					saturatedFatElement, err := nutritionElement.ElementR("td", "Z toho nasycené mastné kyseliny")
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						saturatedFatValueElement, err := saturatedFatElement.Next()
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							saturatedFat, err := saturatedFatValueElement.Text()
-							if err != nil {
-								errors = append(errors, err)
-							}
-							nutrition.SaturatedFat = saturatedFat
-						}
-					}
-
-					carbsElement, err := nutritionElement.ElementR("td", "Sacharidy")
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						carbsValueElement, err := carbsElement.Next()
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							carbs, err := carbsValueElement.Text()
-							if err != nil {
-								errors = append(errors, err)
-							}
-							nutrition.Carbs = carbs
-						}
-					}
-
-					sugarElement, err := nutritionElement.ElementR("td", "Z toho cukry")
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						sugarValueElement, err := sugarElement.Next()
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							sugar, err := sugarValueElement.Text()
-							if err != nil {
-								errors = append(errors, err)
-							}
-							nutrition.Sugar = sugar
-						}
-					}
-
-					fiberElement, err := nutritionElement.ElementR("td", "Vláknina")
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						fiberValueElement, err := fiberElement.Next()
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							fiber, err := fiberValueElement.Text()
-							if err != nil {
-								errors = append(errors, err)
-							}
-							nutrition.Fiber = fiber
-						}
-					}
-
-					proteinElement, err := nutritionElement.ElementR("td", "Bílkoviny")
-					if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-						errors = append(errors, err)
-					} else if err == nil {
-						proteinValueElement, err := proteinElement.Next()
-						if err != nil {
-							errors = append(errors, err)
-						} else {
-							protein, err := proteinValueElement.Text()
-							if err != nil {
-								errors = append(errors, err)
-							}
-							nutrition.Protein = protein
-						}
-					}
-					parsedProduct.Nutrition = nutrition
-				}
-			}
-		}
-
-		err = indgredientsPage.Close()
-		if err != nil {
-			log.Fatalf("Error failed to close ingredients page: %v", err)
-		}
 		parsedProducts = append(parsedProducts, &returnProduct{
 			Product: parsedProduct,
-			Errors:  errors,
+			Errors:  &errors,
 		})
 	}
 
