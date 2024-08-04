@@ -16,7 +16,7 @@ func main() {
 	}
 	defer scraper.Cleanup()
 
-	products, err := scraper.GetKosikProducts("https://www.kosik.cz/c3154-skyry?orderBy=unit-price-asc")
+	products, err := scraper.GetKosikProducts("skyr")
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
