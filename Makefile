@@ -2,7 +2,7 @@
 con: ./cmd/console/main.go
 	@go run ./cmd/console $(ARGS)
 
-.PHONY: con-dev
+.PHONY: con-show
 con-show:
 	@$(MAKE) con ARGS='-rod="show,slow=10s,trace,devtools"'
 
