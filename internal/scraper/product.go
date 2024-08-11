@@ -56,7 +56,7 @@ func (product *Product) getNutritions() *[]error {
 	}()
 
 	imgSelector := "img"
-	err = indgredientsPage.WaitElementsMoreThan(imgSelector, 0) // there is always an image. Wait until javascript loads it
+	err = indgredientsPage.WaitLoad()
 	if err != nil {
 		errors = append(errors, errorUtils.ElementNotFoundError(err, imgSelector))
 		return &errors
