@@ -50,7 +50,6 @@ func (s *Scraper) Cleanup() {
 	}
 }
 
-// todo fix that it sometimes finds only few products
 // todo debug mode with own logging
 // todo goroutines for each product and for nutrition page
 // todo handle timeout => send what was found and errors for the rest
@@ -75,10 +74,9 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 	}()
 
-	widgetSelector := ".page-products-widgets"
-	err = page.WaitElementsMoreThan(widgetSelector, 0) // wait for js elements to load
+	err = page.WaitLoad()
 	if err != nil {
-		return nil, errorUtils.ElementNotFoundError(err, widgetSelector)
+		return nil, err
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"

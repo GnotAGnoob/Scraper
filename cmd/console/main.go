@@ -16,7 +16,7 @@ func main() {
 	}
 	defer scraper.Cleanup()
 
-	products, err := scraper.GetKosikProducts("skyr")
+	products, err := scraper.GetKosikProducts("majoneza")
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
