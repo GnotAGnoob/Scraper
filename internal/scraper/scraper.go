@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"log"
+	"time"
 
 	errorUtils "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
@@ -29,7 +30,7 @@ func InitScraper() (*Scraper, error) {
 	// leakless is a binary that prevents zombie processes
 	// but the problem is that windows defender detects it as a virus
 	// because according to internet, it is used in many viruses
-	launcher := launcher.New().Leakless(false)
+	launcher := launcher.New().Leakless(false).Set("user-agent", USER_AGENT)
 	controlUrl, err := launcher.Launch()
 	if err != nil {
 		return nil, err
@@ -74,7 +75,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 	}()
 
-	err = page.WaitLoad()
+	err = page.WaitStable(1 * time.Second)
 	if err != nil {
 		return nil, err
 	}

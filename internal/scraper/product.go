@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/url"
+	"time"
 
 	errorUtils "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/scraping"
@@ -56,7 +57,7 @@ func (product *Product) getNutritions() *[]error {
 	}()
 
 	imgSelector := "img"
-	err = indgredientsPage.WaitLoad()
+	err = indgredientsPage.WaitStable(1 * time.Second)
 	if err != nil {
 		errors = append(errors, errorUtils.ElementNotFoundError(err, imgSelector))
 		return &errors
