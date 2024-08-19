@@ -1,8 +1,6 @@
 package scraping
 
 import (
-	"time"
-
 	"github.com/go-rod/rod"
 )
 
@@ -32,19 +30,20 @@ func GetTextFromTable(element scrapeElement, searchText string, isDirect bool) (
 	return text, nil
 }
 
-func GetImageResource(element scrapeElement, selector string) (*[]byte, error) {
-	imageElement, err := element.Element(selector)
-	if err != nil {
-		return nil, err
-	}
+// todo fix - possibly out of memory or something. the exceeded deadline always happens to the last products
+// func GetImageResource(element scrapeElement, selector string) (*[]byte, error) {
+// 	imageElement, err := element.Element(selector)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	image, err := imageElement.Timeout(200 * time.Millisecond).Resource()
-	if err != nil {
-		return nil, err
-	}
+// 	image, err := imageElement.Timeout(200 * time.Millisecond).Resource()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &image, nil
-}
+// 	return &image, nil
+// }
 
 func GetText(element scrapeElement, selector string) (string, error) {
 	textElement, err := element.Element(selector)

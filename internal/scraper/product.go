@@ -30,10 +30,10 @@ type Product struct {
 	PricePerKg string
 	Unit       string
 	Link       *url.URL
-	Image      *[]byte
-	IsSoldOut  bool
-	Nutrition  nutrition
-	AddButton  *rod.Element
+	// Image      *[]byte
+	IsSoldOut bool
+	Nutrition nutrition
+	AddButton *rod.Element
 }
 
 func (product *Product) getNutritions() *[]error {
@@ -171,12 +171,12 @@ func scrapeProduct(element *rod.Element) (*Product, *[]error) {
 	}
 	product.Unit = unit
 
-	imgSelector := "a img"
-	image, err := scraping.GetImageResource(element.Sleeper(rod.NotFoundSleeper), imgSelector)
-	if err != nil {
-		errors = append(errors, errorUtils.ElementNotFoundError(err, imgSelector))
-	}
-	product.Image = image
+	// imgSelector := "a img"
+	// image, err := scraping.GetImageResource(element.Sleeper(rod.NotFoundSleeper), imgSelector)
+	// if err != nil {
+	// 	errors = append(errors, errorUtils.ElementNotFoundError(err, imgSelector))
+	// }
+	// product.Image = image
 
 	pricePrefix, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), ".price__prefix")
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {

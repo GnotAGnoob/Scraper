@@ -8,8 +8,7 @@ import (
 )
 
 func ElementNotFoundError(err error, selector string) error {
-	if _, ok := err.(*rod.ElementNotFoundError); !ok {
-		fmt.Printf("Error: %v\n", err)
+	if _, ok := err.(*rod.ElementNotFoundError); ok {
 		text := fmt.Sprintf("Error: cannot find element with selector: '%s'", selector)
 		return errors.New(text)
 	}
