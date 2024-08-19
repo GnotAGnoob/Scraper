@@ -1,6 +1,8 @@
 package scraping
 
 import (
+	"time"
+
 	"github.com/go-rod/rod"
 )
 
@@ -30,13 +32,13 @@ func GetTextFromTable(element scrapeElement, searchText string, isDirect bool) (
 	return text, nil
 }
 
-func getImageResource(element scrapeElement, selector string) (*[]byte, error) {
+func GetImageResource(element scrapeElement, selector string) (*[]byte, error) {
 	imageElement, err := element.Element(selector)
 	if err != nil {
 		return nil, err
 	}
 
-	image, err := imageElement.Resource()
+	image, err := imageElement.Timeout(200 * time.Millisecond).Resource()
 	if err != nil {
 		return nil, err
 	}
@@ -44,15 +46,7 @@ func getImageResource(element scrapeElement, selector string) (*[]byte, error) {
 	return &image, nil
 }
 
-func GetPageImageResource(element *rod.Page, selector string) (*[]byte, error) {
-	return getImageResource(element.Sleeper(rod.NotFoundSleeper), selector)
-}
-
-func GetElementImageResource(element *rod.Element, selector string) (*[]byte, error) {
-	return getImageResource(element.Sleeper(rod.NotFoundSleeper), selector)
-}
-
-func getText(element scrapeElement, selector string) (string, error) {
+func GetText(element scrapeElement, selector string) (string, error) {
 	textElement, err := element.Element(selector)
 	if err != nil {
 		return "", err
@@ -64,12 +58,4 @@ func getText(element scrapeElement, selector string) (string, error) {
 	}
 
 	return text, nil
-}
-
-func GetPageText(element *rod.Page, selector string) (string, error) {
-	return getText(element.Sleeper(rod.NotFoundSleeper), selector)
-}
-
-func GetElementText(element *rod.Element, selector string) (string, error) {
-	return getText(element.Sleeper(rod.NotFoundSleeper), selector)
 }

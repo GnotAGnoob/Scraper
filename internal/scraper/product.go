@@ -56,10 +56,9 @@ func (product *Product) getNutritions() *[]error {
 		}
 	}()
 
-	imgSelector := "img"
-	err = indgredientsPage.WaitStable(1 * time.Second)
+	err = indgredientsPage.WaitDOMStable(1*time.Second, 0)
 	if err != nil {
-		errors = append(errors, errorUtils.ElementNotFoundError(err, imgSelector))
+		errors = append(errors, err)
 		return &errors
 	}
 
@@ -69,7 +68,7 @@ func (product *Product) getNutritions() *[]error {
 		return &errors
 	}
 
-	ingredients, err := scraping.GetPageText(indgredientsPage, "[data-tid='product-detail__ingredients'] dd")
+	ingredients, err := scraping.GetText(indgredientsPage.Sleeper(rod.NotFoundSleeper), "[data-tid='product-detail__ingredients'] dd")
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
@@ -84,43 +83,43 @@ func (product *Product) getNutritions() *[]error {
 		return &errors
 	}
 
-	calories, err := scraping.GetTextFromTable(nutritionElement, "\\d* kcal", true)
+	calories, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "\\d* kcal", true)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
 	product.Nutrition.Calories = calories
 
-	fat, err := scraping.GetTextFromTable(nutritionElement, "Tuky", false)
+	fat, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Tuky", false)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
 	product.Nutrition.Fat = fat
 
-	saturatedFat, err := scraping.GetTextFromTable(nutritionElement, "Z toho nasycené mastné kyseliny", false)
+	saturatedFat, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Z toho nasycené mastné kyseliny", false)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
 	product.Nutrition.SaturatedFat = saturatedFat
 
-	carbs, err := scraping.GetTextFromTable(nutritionElement, "Sacharidy", false)
+	carbs, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Sacharidy", false)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
 	product.Nutrition.Carbs = carbs
 
-	sugar, err := scraping.GetTextFromTable(nutritionElement, "Z toho cukry", false)
+	sugar, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Z toho cukry", false)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
 	product.Nutrition.Sugar = sugar
 
-	fiber, err := scraping.GetTextFromTable(nutritionElement, "Vláknina", false)
+	fiber, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Vláknina", false)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
 	product.Nutrition.Fiber = fiber
 
-	protein, err := scraping.GetTextFromTable(nutritionElement, "Bílkoviny", false)
+	protein, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Bílkoviny", false)
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	}
@@ -152,7 +151,7 @@ func scrapeProduct(element *rod.Element) (*Product, *[]error) {
 
 		url := &url.URL{}
 		hrefAttribute := "href"
-		href, err := nameElement.Attribute(hrefAttribute)
+		href, err := nameElement.Sleeper(rod.NotFoundSleeper).Attribute(hrefAttribute)
 		if err != nil {
 			errors = append(errors, errorUtils.ElementNotFoundError(err, hrefAttribute))
 		} else {
@@ -166,20 +165,20 @@ func scrapeProduct(element *rod.Element) (*Product, *[]error) {
 	}
 
 	unitSelector := ".attributes"
-	unit, err := scraping.GetElementText(element, unitSelector)
+	unit, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), unitSelector)
 	if err != nil {
 		errors = append(errors, errorUtils.ElementNotFoundError(err, unitSelector))
 	}
 	product.Unit = unit
 
-	imgSelector := "img"
-	image, err := scraping.GetElementImageResource(element, imgSelector)
+	imgSelector := "a img"
+	image, err := scraping.GetImageResource(element.Sleeper(rod.NotFoundSleeper), imgSelector)
 	if err != nil {
 		errors = append(errors, errorUtils.ElementNotFoundError(err, imgSelector))
 	}
 	product.Image = image
 
-	pricePrefix, err := scraping.GetElementText(element, ".price__prefix")
+	pricePrefix, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), ".price__prefix")
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		errors = append(errors, err)
 	} else if err == nil {
@@ -187,14 +186,14 @@ func scrapeProduct(element *rod.Element) (*Product, *[]error) {
 	}
 
 	priceSelector := "[data-tid='product-price']"
-	price, err := scraping.GetElementText(element, priceSelector)
+	price, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), priceSelector)
 	if err != nil {
 		errors = append(errors, errorUtils.ElementNotFoundError(err, priceSelector))
 	}
 	product.Price = pricePrefix + price
 
 	pricePerKgSelector := "[aria-label='Cena'] > *:last-child"
-	pricePerKg, err := scraping.GetElementText(element, pricePerKgSelector)
+	pricePerKg, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), pricePerKgSelector)
 	if err != nil {
 		errors = append(errors, errorUtils.ElementNotFoundError(err, pricePerKgSelector))
 	}

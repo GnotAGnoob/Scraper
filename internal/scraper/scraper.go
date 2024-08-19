@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -51,6 +52,7 @@ func (s *Scraper) Cleanup() {
 	}
 }
 
+// todo add location
 // todo debug mode with own logging
 // todo goroutines for each product and for nutrition page
 // todo handle timeout => send what was found and errors for the rest
@@ -75,18 +77,20 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 		}
 	}()
 
-	err = page.WaitStable(1 * time.Second)
+	err = page.WaitDOMStable(1*time.Second, 0)
 	if err != nil {
 		return nil, err
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
-	products, err := page.Elements(productSelector)
+	products, err := page.Sleeper(rod.NotFoundSleeper).Elements(productSelector)
 	if err != nil {
 		return nil, errorUtils.ElementNotFoundError(err, productSelector)
 	}
 
 	parsedProducts := make([]*returnProduct, 0, len(products))
+
+	fmt.Printf("Found %d products\n", len(products))
 
 	for _, product := range products {
 		parsedProduct, errors := scrapeProduct(product)
