@@ -6,6 +6,7 @@ import (
 	"time"
 
 	errorUtils "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
+	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/structs"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
@@ -19,8 +20,7 @@ type Scraper struct {
 var scrapper = &Scraper{}
 
 type returnProduct struct {
-	Product *Product
-	Errors  *[]error
+	structs.ErrorValue[*Product]
 }
 
 func InitScraper() (*Scraper, error) {
@@ -55,6 +55,7 @@ func (s *Scraper) Cleanup() {
 // todo add location
 // todo debug mode with own logging
 // todo goroutines for each product and for nutrition page
+// todo instead of returning array return channel
 // todo handle timeout => send what was found and errors for the rest
 // todo parse things to floats / ints
 // todo caching?
@@ -92,12 +93,14 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 
 	fmt.Printf("Found %d products\n", len(products))
 
-	for _, product := range products {
-		parsedProduct, errors := scrapeProduct(product)
+	for _, product := range products[:1] {
+		parsedProduct, err := scrapeProduct(product)
 
-		parsedProducts = append(parsedProducts, &returnProduct{
-			Product: parsedProduct,
-			Errors:  errors,
+		parsedProducts = append(parsedProducts, &returnProduct{ErrorValue: 
+			structs.ErrorValue[*Product]{
+				Value: parsedProduct,
+				Err:   err,
+			},
 		})
 	}
 

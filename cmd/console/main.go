@@ -22,13 +22,7 @@ func main() {
 	}
 
 	for _, product := range *products {
-		if len(*product.Errors) > 0 {
-			for _, err := range *product.Errors {
-				fmt.Println(err)
-			}
-		}
-
-		fmt.Printf("Product: %+v\n", product.Product)
-		fmt.Printf("Nutrition: %+v\n", product.Product.Nutrition)
+		fmt.Printf("Product: %+v, Error:%v\n", product.Value, product.Err)
+		fmt.Printf("Nutrition: %+v, Error:%v\n", product.Value.Nutrition, product.Value.Nutrition.Err)
 	}
 }
