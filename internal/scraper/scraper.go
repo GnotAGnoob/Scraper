@@ -58,6 +58,7 @@ func (s *Scraper) Cleanup() {
 // todo instead of returning array return channel
 // todo handle timeout => send what was found and errors for the rest
 // todo parse things to floats / ints
+// todo sometimes the calories are not found but there are joules instead
 // todo caching?
 func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 	searchUrl, err := urlParams.CreateSearchUrl(search)
@@ -93,7 +94,7 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 
 	fmt.Printf("Found %d products\n", len(products))
 
-	for _, product := range products[:1] {
+	for _, product := range products {
 		parsedProduct, err := scrapeProduct(product)
 
 		parsedProducts = append(parsedProducts, &returnProduct{ErrorValue: 

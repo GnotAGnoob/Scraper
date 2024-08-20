@@ -23,6 +23,7 @@ func main() {
 
 	for _, product := range *products {
 		fmt.Printf("Product: %+v, Error:%v\n", product.Value, product.Err)
-		fmt.Printf("Nutrition: %+v, Error:%v\n", product.Value.Nutrition, product.Value.Nutrition.Err)
+		fmt.Printf("Nutrition: %+v, Error:%v\n", product.Value.Nutrition.Value, product.Value.Nutrition.Err)
+		fmt.Println()
 	}
 }

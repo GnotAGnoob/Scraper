@@ -33,7 +33,7 @@ type Product struct {
 	Link       structs.ErrorValue[*url.URL]
 	// Image      *[]byte
 	IsSoldOut bool
-	Nutrition structs.ErrorValue[nutrition]
+	Nutrition structs.ErrorValue[*nutrition]
 	AddButton structs.ErrorValue[*rod.Element]
 }
 
@@ -66,7 +66,9 @@ func (product *Product) scrapeNutritions() error {
 		return nil
 	}
 
-	nutrition := nutrition{}
+	nutrition := &nutrition{}
+	product.Nutrition.Value = nutrition
+
 	ingredients, err := scraping.GetText(indgredientsPage.Sleeper(rod.NotFoundSleeper), "[data-tid='product-detail__ingredients'] dd")
 	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
 		nutrition.Ingredients.Err = err
@@ -129,12 +131,6 @@ func (product *Product) scrapeNutritions() error {
 func scrapeProduct(element *rod.Element) (*Product, error) {
 	product := &Product{}
 
-	_, err := element.Sleeper(rod.NotFoundSleeper).ElementR("span", "/vyprodáno/i")
-	if err == nil {
-		product.IsSoldOut = true
-		return product, nil
-	}
-
 	nameSelector := "a[data-tid='product-box__name']"
 	nameElement, err := element.Sleeper(rod.NotFoundSleeper).Element(nameSelector)
 	if err != nil {
@@ -159,6 +155,12 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 			url.Fragment = "ingredients"
 		}
 		product.Link.Value = url
+	}
+
+	_, err = element.Sleeper(rod.NotFoundSleeper).ElementR("span", "/vyprodáno/i")
+	if err == nil {
+		product.IsSoldOut = true
+		return product, nil
 	}
 
 	unitSelector := ".attributes"
