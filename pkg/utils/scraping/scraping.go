@@ -58,3 +58,9 @@ func GetText(element scrapeElement, selector string) (string, error) {
 
 	return text, nil
 }
+
+func IsElementNotFound(err error) bool {
+	_, ok := err.(*rod.ElementNotFoundError)
+
+	return err != nil && !ok
+}

@@ -2,15 +2,14 @@ package scraper
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	errorUtils "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
-	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/structs"
-	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
+	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
+	"github.com/GnotAGnoob/kosik-scraper/internal/utils/urlParams"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
+	"github.com/rs/zerolog/log"
 )
 
 type Scraper struct {
@@ -20,7 +19,7 @@ type Scraper struct {
 var scrapper = &Scraper{}
 
 type returnProduct struct {
-	structs.ErrorValue[*Product]
+	structs.ScrapeResult[*Product]
 }
 
 func InitScraper() (*Scraper, error) {
@@ -31,36 +30,38 @@ func InitScraper() (*Scraper, error) {
 	// leakless is a binary that prevents zombie processes
 	// but the problem is that windows defender detects it as a virus
 	// because according to internet, it is used in many viruses
-	launcher := launcher.New().Leakless(false).Set("user-agent", USER_AGENT)
+	launcher := launcher.New().Leakless(false).Set("user-agent", userAgent)
 	controlUrl, err := launcher.Launch()
 	if err != nil {
 		return nil, err
 	}
 
 	browser := rod.New().NoDefaultDevice().ControlURL(controlUrl)
-	if error := browser.Connect(); error != nil {
-		return nil, error
+	if err := browser.Connect(); err != nil {
+		return nil, err
 	}
 	scrapper.browser = browser
 	return scrapper, nil
 }
 
-func (s *Scraper) Cleanup() {
+func (s *Scraper) Cleanup() error {
 	err := s.browser.Close()
 	if err != nil {
-		log.Fatalf("Error failed to close browser: %v", err)
+		return fmt.Errorf("error while closing browser: %w", err)
 	}
+
+	return err
 }
 
 // todo add location
-// todo debug mode with own logging
+// todo debug logs
 // todo goroutines for each product and for nutrition page
 // todo instead of returning array return channel
 // todo handle timeout => send what was found and errors for the rest
 // todo parse things to floats / ints
 // todo sometimes the calories are not found but there are joules instead
 // todo caching?
-func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
+func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 	searchUrl, err := urlParams.CreateSearchUrl(search)
 	if err != nil {
 		return nil, err
@@ -72,10 +73,11 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 	if err != nil {
 		return nil, err
 	}
+	var deferErr error
 	defer func() {
 		err := page.Close()
 		if err != nil {
-			log.Fatalf("Error failed to close page: %v", err)
+			deferErr = fmt.Errorf("error failed to close page: %v", err)
 		}
 	}()
 
@@ -87,23 +89,22 @@ func (s *Scraper) GetKosikProducts(search string) (*[]*returnProduct, error) {
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
 	products, err := page.Sleeper(rod.NotFoundSleeper).Elements(productSelector)
 	if err != nil {
-		return nil, errorUtils.ElementNotFoundError(err, productSelector)
+		return nil, err
 	}
 
 	parsedProducts := make([]*returnProduct, 0, len(products))
 
-	fmt.Printf("Found %d products\n", len(products))
+	log.Info().Msgf("Found %d products\n", len(products))
 
 	for _, product := range products {
 		parsedProduct, err := scrapeProduct(product)
 
-		parsedProducts = append(parsedProducts, &returnProduct{ErrorValue: 
-			structs.ErrorValue[*Product]{
-				Value: parsedProduct,
-				Err:   err,
-			},
+		parsedProducts = append(parsedProducts, &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+			Value:     parsedProduct,
+			ScrapeErr: err,
+		},
 		})
 	}
 
-	return &parsedProducts, nil
+	return parsedProducts, deferErr
 }

@@ -8,8 +8,8 @@ import (
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/constants"
 )
 
-const SEARCH = "search"
-const ORDER_BY = "orderBy"
+const searchParam = "search"
+const orderByParam = "orderBy"
 
 type orderBy struct {
 	PriceAsc      string
@@ -48,14 +48,14 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 	if searchUrl.IsAbs() {
 		kosikUrl := constants.GetKosikSearchUrl()
 
-		if searchUrl.Hostname() != (&kosikUrl).Hostname() {
+		if searchUrl.Hostname() != kosikUrl.Hostname() {
 			return nil, errors.New("invalid URL: hostname does not match")
 		}
 
 		params := searchUrl.Query()
 		isCategory := strings.HasPrefix(searchUrl.Path, "/c")
 
-		if _, ok := params[SEARCH]; !ok && !isCategory {
+		if _, ok := params[searchParam]; !ok && !isCategory {
 			return nil, errors.New("no search term in URL or category in Path")
 		}
 	} else {
@@ -63,8 +63,8 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 		searchUrl = &kosikUrl
 
 		params := url.Values{}
-		params.Add(ORDER_BY, orderByDefinitions.UnitPriceAsc)
-		params.Add(SEARCH, search)
+		params.Add(orderByParam, orderByDefinitions.UnitPriceAsc)
+		params.Add(searchParam, search)
 
 		searchUrl.RawQuery = params.Encode()
 	}
@@ -84,14 +84,14 @@ func CreateUrlFromPath(path string) (*url.URL, error) {
 	if pathUrl.IsAbs() {
 		kosikUrl := constants.GetKosikUrl()
 
-		if pathUrl.Hostname() != (&kosikUrl).Hostname() {
+		if pathUrl.Hostname() != kosikUrl.Hostname() {
 			return nil, errors.New("invalid URL: hostname does not match")
 		}
 
 		params := pathUrl.Query()
 		isProduct := strings.HasPrefix(pathUrl.Path, "/p")
 
-		if _, ok := params[SEARCH]; !ok && !isProduct {
+		if _, ok := params[searchParam]; !ok && !isProduct {
 			return nil, errors.New("no search term in URL or category in Path")
 		}
 	} else {
@@ -100,5 +100,6 @@ func CreateUrlFromPath(path string) (*url.URL, error) {
 
 		pathUrl.Path = path
 	}
+
 	return pathUrl, nil
 }

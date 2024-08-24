@@ -2,65 +2,66 @@ package scraper
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
-	errorUtils "github.com/GnotAGnoob/kosik-scraper/pkg/utils/errors"
+	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
+	"github.com/GnotAGnoob/kosik-scraper/internal/utils/urlParams"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/scraping"
-	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/structs"
-	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/urlParams"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
 )
 
 type nutrition struct {
-	Calories     structs.ErrorValue[string]
-	Protein      structs.ErrorValue[string]
-	Fat          structs.ErrorValue[string]
-	SaturatedFat structs.ErrorValue[string]
-	Carbs        structs.ErrorValue[string]
-	Sugar        structs.ErrorValue[string]
-	Fiber        structs.ErrorValue[string]
-	Ingredients  structs.ErrorValue[string]
+	Calories     structs.ScrapeResult[string]
+	Protein      structs.ScrapeResult[string]
+	Fat          structs.ScrapeResult[string]
+	SaturatedFat structs.ScrapeResult[string]
+	Carbs        structs.ScrapeResult[string]
+	Sugar        structs.ScrapeResult[string]
+	Fiber        structs.ScrapeResult[string]
+	Ingredients  structs.ScrapeResult[string]
 }
 
 type Product struct {
-	Name       structs.ErrorValue[string]
-	Price      structs.ErrorValue[string]
-	PricePerKg structs.ErrorValue[string]
-	Unit       structs.ErrorValue[string]
-	Link       structs.ErrorValue[*url.URL]
+	Name       structs.ScrapeResult[string]
+	Price      structs.ScrapeResult[string]
+	PricePerKg structs.ScrapeResult[string]
+	Unit       structs.ScrapeResult[string]
+	Link       structs.ScrapeResult[*url.URL]
 	// Image      *[]byte
 	IsSoldOut bool
-	Nutrition structs.ErrorValue[*nutrition]
-	AddButton structs.ErrorValue[*rod.Element]
+	Nutrition structs.ScrapeResult[*nutrition]
+	AddButton structs.ScrapeResult[*rod.Element]
 }
 
 func (product *Product) scrapeNutritions() error {
-	if product.Link.Err != nil || product.Link.Value == nil || len(product.Link.Value.String()) == 0 {
-		return errors.New("Product link is not set")
+	if product.Link.ScrapeErr != nil || product.Link.Value == nil || len(product.Link.Value.String()) == 0 {
+		return errors.New("product link is not set")
 	}
 
-	indgredientsPage, err := scrapper.browser.Page(proto.TargetCreateTarget{
+	ingredientsPage, err := scrapper.browser.Page(proto.TargetCreateTarget{
 		URL: product.Link.Value.String(),
 	})
 	if err != nil {
 		return err
 	}
+	var deferErr error
 	defer func() {
-		err = indgredientsPage.Close()
+		err = ingredientsPage.Close()
 		if err != nil {
-			log.Fatalf("Error failed to close ingredients page: %v", err)
+			deferErr = fmt.Errorf("error failed to close ingredients page: %w", err)
 		}
 	}()
 
-	err = indgredientsPage.WaitDOMStable(1*time.Second, 0)
+	err = ingredientsPage.WaitDOMStable(1*time.Second, 0)
 	if err != nil {
 		return err
 	}
 
-	_, err = indgredientsPage.Sleeper(rod.NotFoundSleeper).ElementR("button", "/vyprodáno/i")
+	_, err = ingredientsPage.Sleeper(rod.NotFoundSleeper).ElementR("button", "/vyprodáno/i")
 	if err == nil {
 		product.IsSoldOut = true
 		return nil
@@ -69,14 +70,14 @@ func (product *Product) scrapeNutritions() error {
 	nutrition := &nutrition{}
 	product.Nutrition.Value = nutrition
 
-	ingredients, err := scraping.GetText(indgredientsPage.Sleeper(rod.NotFoundSleeper), "[data-tid='product-detail__ingredients'] dd")
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Ingredients.Err = err
+	ingredients, err := scraping.GetText(ingredientsPage.Sleeper(rod.NotFoundSleeper), ingredientsSelector)
+	if scraping.IsElementNotFound(err) {
+		nutrition.Ingredients.ScrapeErr = err
 	}
 	nutrition.Ingredients.Value = ingredients
 
-	nutritionElement, err := indgredientsPage.Sleeper(rod.NotFoundSleeper).Element("[data-tid='product-detail__nutrition_table'][aria-describedby='Výživové hodnoty (na 100 g)']")
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok { // some random error
+	nutritionElement, err := ingredientsPage.Sleeper(rod.NotFoundSleeper).Element(nutritionSelector)
+	if scraping.IsElementNotFound(err) { // some random error
 		return err
 	}
 	if err != nil { // no nutrition table
@@ -84,61 +85,60 @@ func (product *Product) scrapeNutritions() error {
 	}
 
 	calories, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "\\d* kcal", true)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Calories.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.Calories.ScrapeErr = err
 	}
 	nutrition.Calories.Value = calories
 
 	fat, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Tuky", false)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Fat.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.Fat.ScrapeErr = err
 	}
 	nutrition.Fat.Value = fat
 
 	saturatedFat, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Z toho nasycené mastné kyseliny", false)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.SaturatedFat.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.SaturatedFat.ScrapeErr = err
 	}
 	nutrition.SaturatedFat.Value = saturatedFat
 
 	carbs, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Sacharidy", false)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Carbs.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.Carbs.ScrapeErr = err
 	}
 	nutrition.Carbs.Value = carbs
 
 	sugar, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Z toho cukry", false)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Sugar.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.Sugar.ScrapeErr = err
 	}
 	nutrition.Sugar.Value = sugar
 
 	fiber, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Vláknina", false)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Fiber.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.Fiber.ScrapeErr = err
 	}
 	nutrition.Fiber.Value = fiber
 
 	protein, err := scraping.GetTextFromTable(nutritionElement.Sleeper(rod.NotFoundSleeper), "Bílkoviny", false)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		nutrition.Protein.Err = err
+	if scraping.IsElementNotFound(err) {
+		nutrition.Protein.ScrapeErr = err
 	}
 	nutrition.Protein.Value = protein
 
-	return nil
+	return deferErr
 }
 
 func scrapeProduct(element *rod.Element) (*Product, error) {
 	product := &Product{}
 
-	nameSelector := "a[data-tid='product-box__name']"
 	nameElement, err := element.Sleeper(rod.NotFoundSleeper).Element(nameSelector)
 	if err != nil {
-		product.Name.Err = errorUtils.ElementNotFoundError(err, nameSelector)
+		product.Name.ScrapeErr = err
 	} else {
 		name, err := nameElement.Text()
 		if err != nil {
-			product.Name.Err = err
+			product.Name.ScrapeErr = err
 		}
 		product.Name.Value = name
 
@@ -146,11 +146,11 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 		hrefAttribute := "href"
 		href, err := nameElement.Sleeper(rod.NotFoundSleeper).Attribute(hrefAttribute)
 		if err != nil {
-			product.Link.Err = errorUtils.ElementNotFoundError(err, hrefAttribute)
+			product.Link.ScrapeErr = err
 		} else {
 			url, err = urlParams.CreateUrlFromPath(*href)
 			if err != nil {
-				product.Link.Err = err
+				product.Link.ScrapeErr = err
 			}
 			url.Fragment = "ingredients"
 		}
@@ -163,10 +163,9 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 		return product, nil
 	}
 
-	unitSelector := ".attributes"
 	unit, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), unitSelector)
 	if err != nil {
-		product.Unit.Err = errorUtils.ElementNotFoundError(err, unitSelector)
+		product.Unit.ScrapeErr = err
 	}
 	product.Unit.Value = unit
 
@@ -177,39 +176,32 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 	// }
 	// product.Image = image
 
-	pricePrefix, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), ".price__prefix")
+	pricePrefix, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), pricePrefixSelector)
 	_, ok := err.(*rod.ElementNotFoundError)
 	if err != nil && !ok {
-		product.Price.Err = err
-	} else if err == nil {
-		pricePrefix += " "
+		product.Price.ScrapeErr = err
 	}
 
-	if err == nil || err != nil && ok {
-		priceSelector := "[data-tid='product-price']"
-		price, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), priceSelector)
-		if err != nil {
-			product.Price.Err = errorUtils.ElementNotFoundError(err, priceSelector)
-		}
-		product.Price.Value = pricePrefix + price
+	price, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), priceSelector)
+	if err != nil {
+		product.Price.ScrapeErr = err
 	}
+	product.Price.Value = strings.TrimSpace(pricePrefix + " " + price)
 
-	pricePerKgSelector := "[aria-label='Cena'] > *:last-child"
 	pricePerKg, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), pricePerKgSelector)
 	if err != nil {
-		product.PricePerKg.Err = errorUtils.ElementNotFoundError(err, pricePerKgSelector)
+		product.PricePerKg.ScrapeErr = err
 	}
 	product.PricePerKg.Value = pricePerKg
 
-	buttonSelector := "[data-tid='product-to-cart__to-cart']"
 	buttonElement, err := element.Sleeper(rod.NotFoundSleeper).Element(buttonSelector)
-	if _, ok := err.(*rod.ElementNotFoundError); err != nil && !ok {
-		product.AddButton.Err = err
+	if scraping.IsElementNotFound(err) {
+		product.AddButton.ScrapeErr = err
 	}
 	product.AddButton.Value = buttonElement
 
 	ingredientsError := product.scrapeNutritions()
-	product.Nutrition.Err = ingredientsError
+	product.Nutrition.ScrapeErr = ingredientsError
 
 	return product, nil
 }
