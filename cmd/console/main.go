@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
+
+	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/logger"
+	"github.com/rs/zerolog/log"
 
 	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -48,13 +50,14 @@ func main() {
 
 		tab := NewTable()
 
-		for _, product := range *products {
+		for _, product := range products {
 			log.Debug().Msgf("Product: %+v", product.Value)
 			log.Debug().Err(product.ScrapeErr)
 			log.Debug().Msgf("Nutritions: %+v", product.Value.Nutrition.Value)
 			log.Debug().Err(product.Value.Nutrition.ScrapeErr)
-			log.Debug().
-				tab.AppendRow(table.Row{
+			log.Debug().Msg("\n")
+
+			tab.AppendRow(table.Row{
 				product.Value.Name.Value,
 				product.Value.Price.Value,
 				product.Value.PricePerKg.Value,
@@ -75,6 +78,6 @@ func main() {
 
 	err = scanner.Err()
 	if err != nil {
-		log.Fatalln(err)
+		log.Fatal().Err(err).Msg("error while scanning input")
 	}
 }
