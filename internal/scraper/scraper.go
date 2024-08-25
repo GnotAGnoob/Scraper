@@ -94,7 +94,7 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 
 	parsedProducts := make([]*returnProduct, 0, len(products))
 
-	log.Info().Msgf("Found %d products\n", len(products))
+	log.Info().Msgf("Found %d products", len(products))
 
 	for _, product := range products {
 		parsedProduct, err := scrapeProduct(product)
