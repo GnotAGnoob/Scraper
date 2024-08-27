@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
 	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/logger"
 	"github.com/rs/zerolog/log"
@@ -34,6 +32,5 @@ func main() {
 		log.Error().Err(product.ScrapeErr)
 		log.Info().Msgf("Nutritions: %+v", product.Value.Nutrition.Value)
 		log.Error().Err(product.Value.Nutrition.ScrapeErr)
-		fmt.Println()
 	}
 }
