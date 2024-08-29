@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"os"
 
@@ -20,14 +21,13 @@ func getDisplayText(value string, err error) string {
 	return value
 }
 
-// todo proper user input
-// todo proper info output
-// todo think about error handling
-// retry on error input
-// input validation
 // todo progress bar -> need channel
 func main() {
-	logger.Init()
+	isDebug := flag.Bool("debug", false, "sets log level to debug")
+	_ = flag.String("rod", "", "options for the rod library")
+	flag.Parse()
+
+	logger.Init(*isDebug)
 
 	scraper, err := scraperLib.InitScraper()
 	if err != nil {
@@ -58,7 +58,6 @@ func main() {
 
 		tab := NewTable(len(products))
 
-		fmt.Println("Found products:")
 		for _, product := range products {
 			if product == nil || product.Value == nil || product.ScrapeErr != nil {
 				log.Error().Err(product.ScrapeErr).Msg("error while getting product")
@@ -82,9 +81,9 @@ func main() {
 			}
 
 			nutrition := product.Value.Nutrition
-			nutritionErr := "none"
+			nutritionErr := ""
 			if nutrition.ScrapeErr != nil {
-				nutritionErr = nutrition.ScrapeErr.Error()
+				nutritionErr = text.FgRed.Sprint("nutrition error")
 			}
 
 			calories := nutritionErr

@@ -3,7 +3,6 @@ package main
 import (
 	"math"
 	"os"
-	"reflect"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -15,40 +14,26 @@ type headerCategory struct {
 	WidthWeight float64
 }
 
-type header struct {
-	Product      headerCategory
-	Status       headerCategory
-	Price        headerCategory
-	PricePerKg   headerCategory
-	Unit         headerCategory
-	Calories     headerCategory
-	Protein      headerCategory
-	Fat          headerCategory
-	SaturatedFat headerCategory
-	Carbs        headerCategory
-	Sugar        headerCategory
-	Fiber        headerCategory
+// Define a slice of headerCategory directly
+var headers = []headerCategory{
+	{Name: "Product", WidthWeight: 4},
+	{Name: "Status", WidthWeight: 1},
+	{Name: "Price", WidthWeight: 1},
+	{Name: "Price per kg", WidthWeight: 1.75},
+	{Name: "Unit", WidthWeight: 0.75},
+	{Name: "Calories", WidthWeight: 1},
+	{Name: "Protein", WidthWeight: 0.8},
+	{Name: "Fat", WidthWeight: 0.75},
+	{Name: "Saturated Fat", WidthWeight: 0.8},
+	{Name: "Carbs", WidthWeight: 0.75},
+	{Name: "Sugar", WidthWeight: 0.75},
+	{Name: "Fiber", WidthWeight: 0.75},
 }
 
-var headerDefinition = header{
-	Product:      headerCategory{Name: "Product", WidthWeight: 4},
-	Status:       headerCategory{Name: "Status", WidthWeight: 1},
-	Price:        headerCategory{Name: "Price", WidthWeight: 1},
-	PricePerKg:   headerCategory{Name: "Price per kg", WidthWeight: 1.75},
-	Unit:         headerCategory{Name: "Unit", WidthWeight: 0.75},
-	Calories:     headerCategory{Name: "Calories", WidthWeight: 1},
-	Protein:      headerCategory{Name: "Protein", WidthWeight: 0.8},
-	Fat:          headerCategory{Name: "Fat", WidthWeight: 0.75},
-	SaturatedFat: headerCategory{Name: "Saturated Fat", WidthWeight: 0.8},
-	Carbs:        headerCategory{Name: "Carbs", WidthWeight: 0.75},
-	Sugar:        headerCategory{Name: "Sugar", WidthWeight: 0.75},
-	Fiber:        headerCategory{Name: "Fiber", WidthWeight: 0.75},
-}
-
-const MAX_TABLE_WIDTH = 250
-const MIN_TABLE_WIDTH = 80
-const INDEX_WIDTH = 3
-const ADDITIONAL_ITEM_WIDTH = 2 // 2 because padding on each side
+const maxTableWidth = 250
+const minTableWidth = 80
+const indexWidth = 3
+const extraItemWidth = 2 // 2 because padding on each side
 
 func NewTable(itemsCount int) table.Writer {
 	tab := table.NewWriter()
@@ -56,29 +41,24 @@ func NewTable(itemsCount int) table.Writer {
 	tab.SetOutputMirror(os.Stdout)
 
 	var sumWidthWeight float64
-	v := reflect.ValueOf(headerDefinition)
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		sumWidthWeight += field.FieldByName("WidthWeight").Float()
+	for _, header := range headers {
+		sumWidthWeight += header.WidthWeight
 	}
 
 	termWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err != nil {
-		termWidth = MIN_TABLE_WIDTH
+		termWidth = minTableWidth
 	}
-	width := math.Min(float64(termWidth), MAX_TABLE_WIDTH)
-	width -= float64(v.NumField()*ADDITIONAL_ITEM_WIDTH + INDEX_WIDTH + itemsCount/10)
+	width := math.Min(float64(termWidth), maxTableWidth)
+	digitsCount := int(math.Log10(float64(itemsCount))) // number of digits in itemsCount - 1
+	width -= float64(len(headers)*extraItemWidth + indexWidth + digitsCount)
 	widthFragment := float64(width) / float64(sumWidthWeight)
 
 	var columnConfigs []table.ColumnConfig
 	var headerRow table.Row
 	var overflowWidth float64
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldName := field.FieldByName("Name").String()
-		fieldWeight := field.FieldByName("WidthWeight").Float()
-
-		widthMax := widthFragment * fieldWeight
+	for _, header := range headers {
+		widthMax := widthFragment * header.WidthWeight
 		widthRemainder := math.Mod(widthMax, 1)
 		widthMax -= widthRemainder
 		overflowWidth += widthRemainder
@@ -89,14 +69,14 @@ func NewTable(itemsCount int) table.Writer {
 		}
 
 		config := table.ColumnConfig{
-			Name:             fieldName,
+			Name:             header.Name,
 			WidthMax:         int(widthMax),
 			WidthMin:         int(widthMax),
 			WidthMaxEnforcer: text.Trim,
 		}
 
 		columnConfigs = append(columnConfigs, config)
-		headerRow = append(headerRow, fieldName)
+		headerRow = append(headerRow, header.Name)
 	}
 	tab.AppendHeader(headerRow)
 	tab.SetColumnConfigs(columnConfigs)

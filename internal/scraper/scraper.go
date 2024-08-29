@@ -98,7 +98,7 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 
 	log.Info().Msgf("Found %d products", len(products))
 
-	for _, product := range products[0:2] {
+	for _, product := range products {
 		parsedProduct, err := scrapeProduct(product)
 
 		parsedProducts = append(parsedProducts, &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
