@@ -28,11 +28,10 @@ type header struct {
 	Carbs        headerCategory
 	Sugar        headerCategory
 	Fiber        headerCategory
-	Ingredients  headerCategory
 }
 
 var headerDefinition = header{
-	Product:      headerCategory{Name: "Product", WidthWeight: 3},
+	Product:      headerCategory{Name: "Product", WidthWeight: 4},
 	Status:       headerCategory{Name: "Status", WidthWeight: 1},
 	Price:        headerCategory{Name: "Price", WidthWeight: 1},
 	PricePerKg:   headerCategory{Name: "Price per kg", WidthWeight: 1.75},
@@ -44,13 +43,12 @@ var headerDefinition = header{
 	Carbs:        headerCategory{Name: "Carbs", WidthWeight: 0.75},
 	Sugar:        headerCategory{Name: "Sugar", WidthWeight: 0.75},
 	Fiber:        headerCategory{Name: "Fiber", WidthWeight: 0.75},
-	Ingredients:  headerCategory{Name: "Ingredients", WidthWeight: 3},
 }
 
 const MAX_TABLE_WIDTH = 250
 const MIN_TABLE_WIDTH = 80
-const INDEX_WIDTH = 5 // 3 for the index + 2 for the borders of index
-const ITEM_WIDTH = 3  // 3 because padding on each side (2) + 1 border
+const INDEX_WIDTH = 3
+const ADDITIONAL_ITEM_WIDTH = 2 // 2 because padding on each side
 
 func NewTable(itemsCount int) table.Writer {
 	tab := table.NewWriter()
@@ -69,7 +67,7 @@ func NewTable(itemsCount int) table.Writer {
 		termWidth = MIN_TABLE_WIDTH
 	}
 	width := math.Min(float64(termWidth), MAX_TABLE_WIDTH)
-	width -= float64(v.NumField()*ITEM_WIDTH + INDEX_WIDTH + itemsCount/10)
+	width -= float64(v.NumField()*ADDITIONAL_ITEM_WIDTH + INDEX_WIDTH + itemsCount/10)
 	widthFragment := float64(width) / float64(sumWidthWeight)
 
 	var columnConfigs []table.ColumnConfig
@@ -102,10 +100,12 @@ func NewTable(itemsCount int) table.Writer {
 	}
 	tab.AppendHeader(headerRow)
 	tab.SetColumnConfigs(columnConfigs)
-
-	// tab.SetStyle(table.Style{
-
-	// })
+	tab.SetStyle(table.StyleColoredBlueWhiteOnBlack)
+	tab.Style().Color.Header = text.Colors{text.BgRed, text.FgBlack, text.Bold}
+	tab.Style().Format.Header = text.FormatTitle
+	tab.Style().Color.IndexColumn = text.Colors{text.BgRed, text.FgBlack}
+	tab.Style().Color.Row = text.Colors{text.BgBlack, text.FgWhite}
+	tab.Style().Color.RowAlternate = text.Colors{text.BgHiBlack, text.FgHiWhite}
 
 	return tab
 }

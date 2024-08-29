@@ -10,13 +10,14 @@ import (
 
 	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
-func getDisplayText(text string, err error) string {
+func getDisplayText(value string, err error) string {
 	if err != nil {
-		return "error"
+		return text.FgRed.Sprint("error")
 	}
-	return text
+	return value
 }
 
 // todo proper user input
@@ -50,7 +51,7 @@ func main() {
 			break
 		}
 
-		products, err := scraper.GetKosikProducts("majoneza")
+		products, err := scraper.GetKosikProducts(search)
 		if err != nil {
 			log.Fatal().Err(err).Msg("error while getting products")
 		}
@@ -81,12 +82,11 @@ func main() {
 			}
 
 			nutrition := product.Value.Nutrition
-			nutritionErr := "none" // i would like to use longer text but the fucking table uses width of the first merge column instead of the whole space
+			nutritionErr := "none"
 			if nutrition.ScrapeErr != nil {
 				nutritionErr = nutrition.ScrapeErr.Error()
 			}
 
-			rowConfig := table.RowConfig{AutoMerge: true}
 			calories := nutritionErr
 			protein := nutritionErr
 			fat := nutritionErr
@@ -94,10 +94,8 @@ func main() {
 			carbs := nutritionErr
 			sugar := nutritionErr
 			fiber := nutritionErr
-			ingredients := nutritionErr
 
 			if nutrition.ScrapeErr == nil && nutrition.Value != nil {
-				rowConfig = table.RowConfig{AutoMerge: false}
 				calories = getDisplayText(nutrition.Value.Calories.Value, nutrition.Value.Calories.ScrapeErr)
 				protein = getDisplayText(nutrition.Value.Protein.Value, nutrition.Value.Protein.ScrapeErr)
 				fat = getDisplayText(nutrition.Value.Fat.Value, nutrition.Value.Fat.ScrapeErr)
@@ -105,7 +103,6 @@ func main() {
 				carbs = getDisplayText(nutrition.Value.Carbs.Value, nutrition.Value.Carbs.ScrapeErr)
 				sugar = getDisplayText(nutrition.Value.Sugar.Value, nutrition.Value.Sugar.ScrapeErr)
 				fiber = getDisplayText(nutrition.Value.Fiber.Value, nutrition.Value.Fiber.ScrapeErr)
-				ingredients = getDisplayText(nutrition.Value.Ingredients.Value, nutrition.Value.Ingredients.ScrapeErr)
 			}
 
 			tab.AppendRow(table.Row{
@@ -121,11 +118,11 @@ func main() {
 				carbs,
 				sugar,
 				fiber,
-				ingredients,
-			}, rowConfig)
+			})
 		}
 
 		tab.Render()
+		fmt.Println()
 	}
 
 	err = scanner.Err()

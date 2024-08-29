@@ -56,6 +56,8 @@ func (product *Product) scrapeNutritions() error {
 		}
 	}()
 
+	waitFCP := ingredientsPage.WaitNavigation(proto.PageLifecycleEventNameFirstContentfulPaint)
+	waitFCP()
 	err = ingredientsPage.WaitDOMStable(1*time.Second, 0)
 	if err != nil {
 		return err

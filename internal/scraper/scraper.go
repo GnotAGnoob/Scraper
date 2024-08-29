@@ -81,6 +81,8 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		}
 	}()
 
+	waitFCP := page.WaitNavigation(proto.PageLifecycleEventNameFirstContentfulPaint)
+	waitFCP()
 	err = page.WaitDOMStable(1*time.Second, 0)
 	if err != nil {
 		return nil, err
@@ -96,7 +98,7 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 
 	log.Info().Msgf("Found %d products", len(products))
 
-	for _, product := range products {
+	for _, product := range products[0:2] {
 		parsedProduct, err := scrapeProduct(product)
 
 		parsedProducts = append(parsedProducts, &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
