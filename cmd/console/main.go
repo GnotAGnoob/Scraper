@@ -24,7 +24,6 @@ func getDisplayText(value string, err error) string {
 // todo progress bar -> need channel
 func main() {
 	isDebug := flag.Bool("debug", false, "sets log level to debug")
-	_ = flag.String("rod", "", "options for the rod library")
 	flag.Parse()
 
 	logger.Init(*isDebug)

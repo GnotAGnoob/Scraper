@@ -14,7 +14,6 @@ type headerCategory struct {
 	WidthWeight float64
 }
 
-// Define a slice of headerCategory directly
 var headers = []headerCategory{
 	{Name: "Product", WidthWeight: 4},
 	{Name: "Status", WidthWeight: 1},
@@ -32,8 +31,7 @@ var headers = []headerCategory{
 
 const maxTableWidth = 250
 const minTableWidth = 80
-const indexWidth = 3
-const extraItemWidth = 2 // 2 because padding on each side
+const extraItemWidth = 2 // 2 because of a padding on each side
 
 func NewTable(itemsCount int) table.Writer {
 	tab := table.NewWriter()
@@ -50,8 +48,8 @@ func NewTable(itemsCount int) table.Writer {
 		termWidth = minTableWidth
 	}
 	width := math.Min(float64(termWidth), maxTableWidth)
-	digitsCount := int(math.Log10(float64(itemsCount))) // number of digits in itemsCount - 1
-	width -= float64(len(headers)*extraItemWidth + indexWidth + digitsCount)
+	indexDigitsCount := int(math.Log10(float64(itemsCount)) + 1)                      // number of digits in itemsCount
+	width -= float64(len(headers)*extraItemWidth + extraItemWidth + indexDigitsCount) // subtracting extra non-item width
 	widthFragment := float64(width) / float64(sumWidthWeight)
 
 	var columnConfigs []table.ColumnConfig
@@ -78,6 +76,7 @@ func NewTable(itemsCount int) table.Writer {
 		columnConfigs = append(columnConfigs, config)
 		headerRow = append(headerRow, header.Name)
 	}
+
 	tab.AppendHeader(headerRow)
 	tab.SetColumnConfigs(columnConfigs)
 	tab.SetStyle(table.StyleColoredBlueWhiteOnBlack)
