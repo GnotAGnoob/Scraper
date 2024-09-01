@@ -5,8 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/logger"
+	"github.com/GnotAGnoob/kosik-scraper/internal/logger"
+	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 	"github.com/rs/zerolog/log"
 
 	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
@@ -44,7 +46,7 @@ func main() {
 	for {
 		fmt.Print("Enter query or full url: ")
 		scanner.Scan()
-		search := scanner.Text()
+		search := strings.TrimSpace(scanner.Text())
 
 		if len(search) == 0 {
 			break
@@ -69,54 +71,44 @@ func main() {
 			log.Debug().Err(product.Value.Nutrition.ScrapeErr)
 			log.Debug().Msg("\n")
 
-			name := getDisplayText(product.Value.Name.Value, product.Value.Name.ScrapeErr)
-			price := getDisplayText(product.Value.Price.Value, product.Value.Price.ScrapeErr)
-			pricePerKg := getDisplayText(product.Value.PricePerKg.Value, product.Value.PricePerKg.ScrapeErr)
-			unit := getDisplayText(product.Value.Unit.Value, product.Value.Unit.ScrapeErr)
-
-			soldOutText := "available"
+			availabilityText := "available"
 			if product.Value.IsSoldOut {
-				soldOutText = "sold out"
+				availabilityText = "sold out"
+			}
+
+			row := table.Row{
+				getDisplayText(product.Value.Name.Value, product.Value.Name.ScrapeErr),
+				availabilityText,
+				getDisplayText(product.Value.Price.Value, product.Value.Price.ScrapeErr),
+				getDisplayText(product.Value.PricePerKg.Value, product.Value.PricePerKg.ScrapeErr),
+				getDisplayText(product.Value.Unit.Value, product.Value.Unit.ScrapeErr),
 			}
 
 			nutrition := product.Value.Nutrition
+			nutritionFields := []structs.ScrapeResult[string]{
+				nutrition.Value.Calories,
+				nutrition.Value.Protein,
+				nutrition.Value.Fat,
+				nutrition.Value.SaturatedFat,
+				nutrition.Value.Carbs,
+				nutrition.Value.Sugar,
+				nutrition.Value.Fiber,
+			}
+
 			nutritionErr := ""
-			if nutrition.ScrapeErr != nil {
+			if nutrition.ScrapeErr != nil || nutrition.Value == nil {
 				nutritionErr = text.FgRed.Sprint("nutrition error")
 			}
 
-			calories := nutritionErr
-			protein := nutritionErr
-			fat := nutritionErr
-			saturatedFat := nutritionErr
-			carbs := nutritionErr
-			sugar := nutritionErr
-			fiber := nutritionErr
-
-			if nutrition.ScrapeErr == nil && nutrition.Value != nil {
-				calories = getDisplayText(nutrition.Value.Calories.Value, nutrition.Value.Calories.ScrapeErr)
-				protein = getDisplayText(nutrition.Value.Protein.Value, nutrition.Value.Protein.ScrapeErr)
-				fat = getDisplayText(nutrition.Value.Fat.Value, nutrition.Value.Fat.ScrapeErr)
-				saturatedFat = getDisplayText(nutrition.Value.SaturatedFat.Value, nutrition.Value.SaturatedFat.ScrapeErr)
-				carbs = getDisplayText(nutrition.Value.Carbs.Value, nutrition.Value.Carbs.ScrapeErr)
-				sugar = getDisplayText(nutrition.Value.Sugar.Value, nutrition.Value.Sugar.ScrapeErr)
-				fiber = getDisplayText(nutrition.Value.Fiber.Value, nutrition.Value.Fiber.ScrapeErr)
+			for _, field := range nutritionFields {
+				if nutritionErr != "" {
+					row = append(row, nutritionErr)
+				} else {
+					row = append(row, getDisplayText(field.Value, field.ScrapeErr))
+				}
 			}
 
-			tab.AppendRow(table.Row{
-				name,
-				soldOutText,
-				price,
-				pricePerKg,
-				unit,
-				calories,
-				protein,
-				fat,
-				saturatedFat,
-				carbs,
-				sugar,
-				fiber,
-			})
+			tab.AppendRow(row)
 		}
 
 		tab.Render()
