@@ -81,6 +81,8 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		}
 	}()
 
+	waitFCP := page.WaitNavigation(proto.PageLifecycleEventNameFirstContentfulPaint)
+	waitFCP()
 	err = page.WaitDOMStable(1*time.Second, 0)
 	if err != nil {
 		return nil, err

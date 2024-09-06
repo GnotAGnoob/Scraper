@@ -8,4 +8,4 @@ con-show:
 
 .PHONY: con-debug
 con-debug:
-	@$(MAKE) con ARGS='-rod="trace"'
+	@$(MAKE) con ARGS='-rod="trace" -debug=true'

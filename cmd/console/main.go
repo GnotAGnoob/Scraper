@@ -1,15 +1,34 @@
 package main
 
 import (
-	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
-	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/logger"
+	"bufio"
+	"flag"
+	"fmt"
+	"os"
+	"strings"
+
+	"github.com/GnotAGnoob/kosik-scraper/internal/logger"
+	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 	"github.com/rs/zerolog/log"
+
+	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
-// todo proper user input
-// todo proper info output
+func getDisplayText(value string, err error) string {
+	if err != nil {
+		return text.FgRed.Sprint("error")
+	}
+	return value
+}
+
+// todo progress bar -> need channel
 func main() {
-	logger.Init()
+	isDebug := flag.Bool("debug", false, "sets log level to debug")
+	flag.Parse()
+
+	logger.Init(*isDebug)
 
 	scraper, err := scraperLib.InitScraper()
 	if err != nil {
@@ -22,15 +41,82 @@ func main() {
 		}
 	}()
 
-	products, err := scraper.GetKosikProducts("majoneza")
-	if err != nil {
-		log.Fatal().Err(err).Msg("error while getting products")
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for {
+		fmt.Print("Enter query or full url: ")
+		scanner.Scan()
+		search := strings.TrimSpace(scanner.Text())
+
+		if len(search) == 0 {
+			break
+		}
+
+		products, err := scraper.GetKosikProducts(search)
+		if err != nil {
+			log.Fatal().Err(err).Msg("error while getting products")
+		}
+
+		tab := NewTable(len(products))
+
+		for _, product := range products {
+			if product == nil || product.Value == nil || product.ScrapeErr != nil {
+				log.Error().Err(product.ScrapeErr).Msg("error while getting product")
+				continue
+			}
+
+			log.Debug().Msgf("Product: %+v", product.Value)
+			log.Debug().Err(product.ScrapeErr)
+			log.Debug().Msgf("Nutritions: %+v", product.Value.Nutrition.Value)
+			log.Debug().Err(product.Value.Nutrition.ScrapeErr)
+			log.Debug().Msg("\n")
+
+			availabilityText := "available"
+			if product.Value.IsSoldOut {
+				availabilityText = "sold out"
+			}
+
+			row := table.Row{
+				getDisplayText(product.Value.Name.Value, product.Value.Name.ScrapeErr),
+				availabilityText,
+				getDisplayText(product.Value.Price.Value, product.Value.Price.ScrapeErr),
+				getDisplayText(product.Value.PricePerKg.Value, product.Value.PricePerKg.ScrapeErr),
+				getDisplayText(product.Value.Unit.Value, product.Value.Unit.ScrapeErr),
+			}
+
+			nutrition := product.Value.Nutrition
+			nutritionFields := []structs.ScrapeResult[string]{
+				nutrition.Value.Calories,
+				nutrition.Value.Protein,
+				nutrition.Value.Fat,
+				nutrition.Value.SaturatedFat,
+				nutrition.Value.Carbs,
+				nutrition.Value.Sugar,
+				nutrition.Value.Fiber,
+			}
+
+			nutritionErr := ""
+			if nutrition.ScrapeErr != nil || nutrition.Value == nil {
+				nutritionErr = text.FgRed.Sprint("nutrition error")
+			}
+
+			for _, field := range nutritionFields {
+				if nutritionErr != "" {
+					row = append(row, nutritionErr)
+				} else {
+					row = append(row, getDisplayText(field.Value, field.ScrapeErr))
+				}
+			}
+
+			tab.AppendRow(row)
+		}
+
+		tab.Render()
+		fmt.Println()
 	}
 
-	for _, product := range products {
-		log.Info().Msgf("Product: %+v", product.Value)
-		log.Error().Err(product.ScrapeErr)
-		log.Info().Msgf("Nutritions: %+v", product.Value.Nutrition.Value)
-		log.Error().Err(product.Value.Nutrition.ScrapeErr)
+	err = scanner.Err()
+	if err != nil {
+		log.Fatal().Err(err).Msg("error while scanning input")
 	}
 }
