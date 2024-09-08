@@ -85,23 +85,25 @@ func main() {
 			}
 
 			nutrition := product.Value.Nutrition
-			nutritionFields := []structs.ScrapeResult[string]{
-				nutrition.Value.Calories,
-				nutrition.Value.Protein,
-				nutrition.Value.Fat,
-				nutrition.Value.SaturatedFat,
-				nutrition.Value.Carbs,
-				nutrition.Value.Sugar,
-				nutrition.Value.Fiber,
+			var calories, protein, fat, saturatedFat, carbs, sugar, fiber structs.ScrapeResult[string]
+			if nutrition.Value != nil {
+				calories = nutrition.Value.Calories
+				protein = nutrition.Value.Protein
+				fat = nutrition.Value.Fat
+				saturatedFat = nutrition.Value.SaturatedFat
+				carbs = nutrition.Value.Carbs
+				sugar = nutrition.Value.Sugar
+				fiber = nutrition.Value.Fiber
 			}
+			nutritionFields := []structs.ScrapeResult[string]{calories, protein, fat, saturatedFat, carbs, sugar, fiber}
 
 			nutritionErr := ""
-			if nutrition.ScrapeErr != nil || nutrition.Value == nil {
+			if nutrition.ScrapeErr != nil {
 				nutritionErr = text.FgRed.Sprint("nutrition error")
 			}
 
 			for _, field := range nutritionFields {
-				if nutritionErr != "" {
+				if len(nutritionErr) > 0 {
 					row = append(row, nutritionErr)
 				} else {
 					row = append(row, getDisplayText(field.Value, field.ScrapeErr))
