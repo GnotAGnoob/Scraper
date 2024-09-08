@@ -141,9 +141,9 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 		url := &url.URL{}
 		hrefAttribute := "href"
 		href, err := linkElement.Sleeper(rod.NotFoundSleeper).Attribute(hrefAttribute)
-		if err != nil || href == nil {
+		if err != nil {
 			product.Link.ScrapeErr = err
-		} else {
+		} else if href != nil {
 			url, err = urlParams.CreateUrlFromPath(*href)
 			if err != nil {
 				product.Link.ScrapeErr = err
