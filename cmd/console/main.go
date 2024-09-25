@@ -97,14 +97,9 @@ func main() {
 			}
 			nutritionFields := []structs.ScrapeResult[string]{calories, protein, fat, saturatedFat, carbs, sugar, fiber}
 
-			nutritionErr := ""
-			if nutrition.ScrapeErr != nil {
-				nutritionErr = text.FgRed.Sprint("nutrition error")
-			}
-
 			for _, field := range nutritionFields {
-				if len(nutritionErr) > 0 {
-					row = append(row, nutritionErr)
+				if nutrition.ScrapeErr != nil {
+					row = append(row, text.FgRed.Sprint("nutrition error"))
 				} else {
 					row = append(row, getDisplayText(field.Value, field.ScrapeErr))
 				}
