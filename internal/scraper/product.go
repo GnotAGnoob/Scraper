@@ -38,6 +38,9 @@ type Product struct {
 }
 
 func (product *Product) scrapeNutritions() error {
+	nutrition := &nutrition{}
+	product.Nutrition.Value = nutrition
+
 	if product.Link.ScrapeErr != nil || product.Link.Value == nil || len(product.Link.Value.String()) == 0 {
 		return errors.New("product link is not set")
 	}
@@ -68,9 +71,6 @@ func (product *Product) scrapeNutritions() error {
 		product.IsSoldOut = true
 		return nil
 	}
-
-	nutrition := &nutrition{}
-	product.Nutrition.Value = nutrition
 
 	ingredients, err := scraping.GetText(ingredientsPage.Sleeper(rod.NotFoundSleeper), ingredientsSelector)
 	if scraping.IsElementNotFound(err) {
@@ -134,22 +134,16 @@ func (product *Product) scrapeNutritions() error {
 func scrapeProduct(element *rod.Element) (*Product, error) {
 	product := &Product{}
 
-	nameElement, err := element.Sleeper(rod.NotFoundSleeper).Element(nameSelector)
+	linkElement, err := element.Sleeper(rod.NotFoundSleeper).Element(linkSelector)
 	if err != nil {
 		product.Name.ScrapeErr = err
 	} else {
-		name, err := nameElement.Text()
-		if err != nil {
-			product.Name.ScrapeErr = err
-		}
-		product.Name.Value = name
-
 		url := &url.URL{}
 		hrefAttribute := "href"
-		href, err := nameElement.Sleeper(rod.NotFoundSleeper).Attribute(hrefAttribute)
+		href, err := linkElement.Sleeper(rod.NotFoundSleeper).Attribute(hrefAttribute)
 		if err != nil {
 			product.Link.ScrapeErr = err
-		} else {
+		} else if href != nil {
 			url, err = urlParams.CreateUrlFromPath(*href)
 			if err != nil {
 				product.Link.ScrapeErr = err
@@ -158,6 +152,12 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 		}
 		product.Link.Value = url
 	}
+
+	name, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), nameSelector)
+	if err != nil {
+		product.Name.ScrapeErr = err
+	}
+	product.Name.Value = name
 
 	_, err = element.Sleeper(rod.NotFoundSleeper).ElementR("span", "/vyprodáno/i")
 	if err == nil {

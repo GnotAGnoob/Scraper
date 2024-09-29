@@ -6,7 +6,8 @@ const userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 
 // selectors
 const ingredientsSelector = "[data-tid='product-detail__ingredients'] dd"
 const nutritionSelector = "[data-tid='product-detail__nutrition_table'][aria-describedby='Výživové hodnoty (na 100 g)']"
-const nameSelector = "a[data-tid='product-box__name']"
+const linkSelector = "a[data-tid='product-box__name']"
+const nameSelector = ".name"
 const unitSelector = ".attributes"
 const pricePrefixSelector = ".price__prefix"
 const priceSelector = "[data-tid='product-price']"
