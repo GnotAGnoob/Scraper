@@ -87,9 +87,23 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		}
 	}()
 
-	_, err = scraping.RaceSelectors(page, productsPageTimeout, productPageNotFoundWaitSelector, productPageWaitSelector)
+	isNotFoundPage := false
+	notFoundHandler := func(el *rod.Element) error {
+		isNotFoundPage = true
+		return nil
+	}
+
+	_, err = scraping.RaceSelectors(
+		page,
+		productsPageTimeout,
+		scraping.RaceSelector{Selector: productPageNotFoundWaitSelector, Handler: &notFoundHandler},
+		scraping.RaceSelector{Selector: productPageWaitSelector},
+	)
 	if err != nil {
 		return nil, err
+	}
+	if isNotFoundPage {
+		return []*returnProduct{}, deferErr
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"

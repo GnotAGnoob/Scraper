@@ -67,9 +67,23 @@ func (product *Product) scrapeNutritions(browser *rod.Browser) error {
 		}
 	}()
 
-	_, err = scraping.RaceSelectors(ingredientsPage, nutritionPageTimeout, nutritionPageWaitSelector, nutritionPageNotFoundWaitSelector)
+	isNotFoundPage := false
+	notFoundHandler := func(el *rod.Element) error {
+		isNotFoundPage = true
+		return nil
+	}
+
+	_, err = scraping.RaceSelectors(
+		ingredientsPage,
+		nutritionPageTimeout,
+		scraping.RaceSelector{Selector: nutritionPageNotFoundWaitSelector, Handler: &notFoundHandler},
+		scraping.RaceSelector{Selector: nutritionPageWaitSelector},
+	)
 	if err != nil {
 		return err
+	}
+	if isNotFoundPage {
+		return nil
 	}
 
 	_, err = ingredientsPage.Sleeper(rod.NotFoundSleeper).ElementR("button", "/vyprodáno/i")

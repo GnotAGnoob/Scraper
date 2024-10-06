@@ -67,13 +67,25 @@ func IsElementNotFound(err error) bool {
 	return err != nil && !ok
 }
 
-func RaceSelectors(page *rod.Page, timeout time.Duration, selectors ...string) (*rod.Element, error) {
+type RaceSelector struct {
+	Selector string
+	Handler  *func(el *rod.Element) error
+}
+
+func RaceSelectors(page *rod.Page, timeout time.Duration, raceSelectors ...RaceSelector) (*rod.Element, error) {
 	race := page.Timeout(timeout).Race()
 
-	for _, selector := range selectors {
-		race.Element(selector).Handle(func(_ *rod.Element) error {
-			return nil
-		})
+	defaultHandler := func(el *rod.Element) error {
+		return nil
+	}
+
+	for _, raceSelector := range raceSelectors {
+		handler := &defaultHandler
+		if raceSelector.Handler != nil {
+			handler = raceSelector.Handler
+		}
+
+		race.Element(raceSelector.Selector).Handle(*handler)
 	}
 
 	return race.Do()
