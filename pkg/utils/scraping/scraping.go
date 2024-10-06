@@ -1,6 +1,8 @@
 package scraping
 
 import (
+	"time"
+
 	"github.com/go-rod/rod"
 )
 
@@ -63,4 +65,16 @@ func IsElementNotFound(err error) bool {
 	_, ok := err.(*rod.ElementNotFoundError)
 
 	return err != nil && !ok
+}
+
+func RaceSelectors(page *rod.Page, timeout time.Duration, selectors ...string) (*rod.Element, error) {
+	race := page.Timeout(timeout).Race()
+
+	for _, selector := range selectors {
+		race.Element(selector).Handle(func(_ *rod.Element) error {
+			return nil
+		})
+	}
+
+	return race.Do()
 }

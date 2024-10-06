@@ -57,6 +57,11 @@ func main() {
 			log.Fatal().Err(err).Msg("error while getting products")
 		}
 
+		if len(products) == 0 {
+			fmt.Print("No products found\n\n")
+			continue
+		}
+
 		tab := NewTable(len(products))
 
 		for _, product := range products {
