@@ -125,7 +125,6 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 	ch := make(chan *productResult, len(products))
 
 	for index, product := range products {
-		fmt.Println("forloop", index)
 		wg.Add(1)
 		go scrapeProductAsync(product, index, browser, ch, &wg)
 	}
