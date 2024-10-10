@@ -59,11 +59,10 @@ func (product *Product) scrapeNutritions(browser *rod.Browser) error {
 	if err != nil {
 		return err
 	}
-	var deferErr error
 	defer func() {
 		err = ingredientsPage.Close()
 		if err != nil {
-			deferErr = fmt.Errorf("error failed to close ingredients page: %w", err)
+			err = fmt.Errorf("error failed to close ingredients page: %w", err)
 		}
 	}()
 
@@ -148,7 +147,7 @@ func (product *Product) scrapeNutritions(browser *rod.Browser) error {
 	}
 	nutrition.Protein.Value = protein
 
-	return deferErr
+	return err
 }
 
 func scrapeProduct(element *rod.Element, browser *rod.Browser) (*Product, error) {

@@ -79,11 +79,10 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 	if err != nil {
 		return nil, err
 	}
-	var deferErr error
 	defer func() {
-		err := page.Close()
+		err = page.Close()
 		if err != nil {
-			deferErr = fmt.Errorf("error failed to close page: %v", err)
+			err = fmt.Errorf("error failed to close page: %w", err)
 		}
 	}()
 
@@ -103,7 +102,7 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		return nil, err
 	}
 	if isNotFoundPage {
-		return []*returnProduct{}, deferErr
+		return []*returnProduct{}, err
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
@@ -115,7 +114,7 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 	log.Info().Msgf("Found %d products", len(products))
 
 	if len(products) == 0 {
-		return []*returnProduct{}, deferErr
+		return []*returnProduct{}, err
 	}
 
 	parsedProducts := make([]*returnProduct, len(products))
@@ -136,5 +135,5 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		parsedProducts[result.index] = result.result
 	}
 
-	return parsedProducts, deferErr
+	return parsedProducts, err
 }
