@@ -8,10 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Init(isDebug bool) {
+func Init(logLevel string) {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	if isDebug {
+	if logLevel == "debug" {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else if logLevel == "disabled" {
+		zerolog.SetGlobalLevel(zerolog.Disabled)
 	}
 
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
