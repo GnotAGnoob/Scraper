@@ -19,7 +19,7 @@ var headers = []headerCategory{
 	{Name: "Status", WidthWeight: 1},
 	{Name: "Price", WidthWeight: 1},
 	{Name: "Price per kg", WidthWeight: 1.75},
-	{Name: "Unit", WidthWeight: 0.75},
+	{Name: "Unit", WidthWeight: 1},
 	{Name: "Calories", WidthWeight: 1},
 	{Name: "Protein", WidthWeight: 0.8},
 	{Name: "Fat", WidthWeight: 0.75},

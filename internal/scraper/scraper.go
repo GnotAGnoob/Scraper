@@ -2,10 +2,12 @@ package scraper
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 	"github.com/GnotAGnoob/kosik-scraper/internal/utils/urlParams"
+	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/scraping"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/go-rod/rod/lib/proto"
@@ -20,6 +22,11 @@ var scrapper = &Scraper{}
 
 type returnProduct struct {
 	structs.ScrapeResult[*Product]
+}
+
+type productResult struct {
+	index  int
+	result *returnProduct
 }
 
 func InitScraper() (*Scraper, error) {
@@ -53,10 +60,9 @@ func (s *Scraper) Cleanup() error {
 	return err
 }
 
-// todo add location
+// todo add the setting of the address for kosik site
 // todo debug logs
-// todo goroutines for each product and for nutrition page
-// todo instead of returning array return channel
+// todo instead of returning array return channel for progress indication
 // todo handle timeout => send what was found and errors for the rest
 // todo parse things to floats / ints
 // todo sometimes the calories are not found but there are joules instead
@@ -73,19 +79,30 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 	if err != nil {
 		return nil, err
 	}
-	var deferErr error
 	defer func() {
-		err := page.Close()
+		err = page.Close()
 		if err != nil {
-			deferErr = fmt.Errorf("error failed to close page: %v", err)
+			err = fmt.Errorf("error failed to close page: %w", err)
 		}
 	}()
 
-	waitFCP := page.WaitNavigation(proto.PageLifecycleEventNameFirstContentfulPaint)
-	waitFCP()
-	err = page.WaitDOMStable(1*time.Second, 0)
+	isNotFoundPage := false
+	notFoundHandler := func(el *rod.Element) error {
+		isNotFoundPage = true
+		return nil
+	}
+
+	_, err = scraping.RaceSelectors(
+		page,
+		productsPageTimeout,
+		scraping.RaceSelector{Selector: productPageNotFoundWaitSelector, Handler: &notFoundHandler},
+		scraping.RaceSelector{Selector: productPageWaitSelector},
+	)
 	if err != nil {
 		return nil, err
+	}
+	if isNotFoundPage {
+		return []*returnProduct{}, err
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
@@ -94,19 +111,29 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		return nil, err
 	}
 
-	parsedProducts := make([]*returnProduct, 0, len(products))
-
 	log.Info().Msgf("Found %d products", len(products))
 
-	for _, product := range products {
-		parsedProduct, err := scrapeProduct(product)
-
-		parsedProducts = append(parsedProducts, &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
-			Value:     parsedProduct,
-			ScrapeErr: err,
-		},
-		})
+	if len(products) == 0 {
+		return []*returnProduct{}, err
 	}
 
-	return parsedProducts, deferErr
+	parsedProducts := make([]*returnProduct, len(products))
+	browser := s.browser.Timeout(time.Duration(len(products)) * perProductTimeout)
+
+	wg := sync.WaitGroup{}
+	ch := make(chan *productResult, len(products))
+
+	for index, product := range products {
+		wg.Add(1)
+		go scrapeProductAsync(product, index, browser, ch, &wg)
+	}
+
+	wg.Wait()
+	close(ch)
+
+	for result := range ch {
+		parsedProducts[result.index] = result.result
+	}
+
+	return parsedProducts, err
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
+	"sync"
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 	"github.com/GnotAGnoob/kosik-scraper/internal/utils/urlParams"
@@ -37,7 +37,15 @@ type Product struct {
 	AddButton structs.ScrapeResult[*rod.Element]
 }
 
-func (product *Product) scrapeNutritions() error {
+func (product *Product) scrapeNutritions(browser *rod.Browser) error {
+	if product == nil {
+		return errors.New("product is not set")
+	}
+
+	if browser == nil {
+		return errors.New("browser is not set")
+	}
+
 	nutrition := &nutrition{}
 	product.Nutrition.Value = nutrition
 
@@ -45,25 +53,36 @@ func (product *Product) scrapeNutritions() error {
 		return errors.New("product link is not set")
 	}
 
-	ingredientsPage, err := scrapper.browser.Page(proto.TargetCreateTarget{
+	ingredientsPage, err := browser.Page(proto.TargetCreateTarget{
 		URL: product.Link.Value.String(),
 	})
 	if err != nil {
 		return err
 	}
-	var deferErr error
 	defer func() {
 		err = ingredientsPage.Close()
 		if err != nil {
-			deferErr = fmt.Errorf("error failed to close ingredients page: %w", err)
+			err = fmt.Errorf("error failed to close ingredients page: %w", err)
 		}
 	}()
 
-	waitFCP := ingredientsPage.WaitNavigation(proto.PageLifecycleEventNameFirstContentfulPaint)
-	waitFCP()
-	err = ingredientsPage.WaitDOMStable(1*time.Second, 0)
+	isNotFoundPage := false
+	notFoundHandler := func(el *rod.Element) error {
+		isNotFoundPage = true
+		return nil
+	}
+
+	_, err = scraping.RaceSelectors(
+		ingredientsPage,
+		nutritionPageTimeout,
+		scraping.RaceSelector{Selector: nutritionPageNotFoundWaitSelector, Handler: &notFoundHandler},
+		scraping.RaceSelector{Selector: nutritionPageWaitSelector},
+	)
 	if err != nil {
 		return err
+	}
+	if isNotFoundPage {
+		return nil
 	}
 
 	_, err = ingredientsPage.Sleeper(rod.NotFoundSleeper).ElementR("button", "/vyprodáno/i")
@@ -128,15 +147,23 @@ func (product *Product) scrapeNutritions() error {
 	}
 	nutrition.Protein.Value = protein
 
-	return deferErr
+	return err
 }
 
-func scrapeProduct(element *rod.Element) (*Product, error) {
+func scrapeProduct(element *rod.Element, browser *rod.Browser) (*Product, error) {
+	if element == nil {
+		return nil, errors.New("product is not set")
+	}
+
+	if browser == nil {
+		return nil, errors.New("browser is not set")
+	}
+
 	product := &Product{}
 
 	linkElement, err := element.Sleeper(rod.NotFoundSleeper).Element(linkSelector)
 	if err != nil {
-		product.Name.ScrapeErr = err
+		product.Link.ScrapeErr = err
 	} else {
 		url := &url.URL{}
 		hrefAttribute := "href"
@@ -165,6 +192,10 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 		return product, nil
 	}
 
+	ingredientsError := product.scrapeNutritions(browser)
+	product.Nutrition.ScrapeErr = ingredientsError
+
+	// todo remove whitespace
 	unit, err := scraping.GetText(element.Sleeper(rod.NotFoundSleeper), unitSelector)
 	if err != nil {
 		product.Unit.ScrapeErr = err
@@ -202,8 +233,43 @@ func scrapeProduct(element *rod.Element) (*Product, error) {
 	}
 	product.AddButton.Value = buttonElement
 
-	ingredientsError := product.scrapeNutritions()
-	product.Nutrition.ScrapeErr = ingredientsError
-
 	return product, nil
+}
+
+func scrapeProductAsync(product *rod.Element, index int, browser *rod.Browser, ch chan<- *productResult, wg *sync.WaitGroup) {
+	defer func() {
+		wg.Done()
+	}()
+
+	if product == nil {
+		ch <- &productResult{
+			index: index,
+			result: &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+				Value:     nil,
+				ScrapeErr: errors.New("product is not set"),
+			}},
+		}
+		return
+	}
+
+	if browser == nil {
+		ch <- &productResult{
+			index: index,
+			result: &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+				Value:     nil,
+				ScrapeErr: errors.New("browser is not set"),
+			}},
+		}
+		return
+	}
+
+	parsedProduct, err := scrapeProduct(product, browser)
+
+	ch <- &productResult{
+		index: index,
+		result: &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+			Value:     parsedProduct,
+			ScrapeErr: err,
+		}},
+	}
 }
