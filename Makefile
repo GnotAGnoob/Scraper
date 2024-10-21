@@ -16,7 +16,7 @@ bench:
 	read filename; \
 	mkdir -p ./benchmark; \
 	TIMESTAMP=$$(date +"%Y-%m-%d_%H-%M-%S"); \
-	go test -bench=. -count=6 ./... > ./benchmark/$${filename}_benchmark_$${TIMESTAMP}.txt
+	go test -bench=. -count=6 ./... | tee ./benchmark/$${filename}_$${TIMESTAMP}.txt
 
 .PHONY: bench-clean
 bench-clean:
