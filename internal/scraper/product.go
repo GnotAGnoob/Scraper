@@ -236,15 +236,15 @@ func scrapeProduct(element *rod.Element, browser *rod.Browser) (*Product, error)
 	return product, nil
 }
 
-func scrapeProductAsync(product *rod.Element, index int, browser *rod.Browser, ch chan<- *productResult, wg *sync.WaitGroup) {
+func scrapeProductAsync(product *rod.Element, index int, browser *rod.Browser, ch chan<- *ProductResult, wg *sync.WaitGroup) {
 	defer func() {
 		wg.Done()
 	}()
 
 	if product == nil {
-		ch <- &productResult{
-			index: index,
-			result: &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+		ch <- &ProductResult{
+			Index: index,
+			Result: &ReturnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
 				Value:     nil,
 				ScrapeErr: errors.New("product is not set"),
 			}},
@@ -253,9 +253,9 @@ func scrapeProductAsync(product *rod.Element, index int, browser *rod.Browser, c
 	}
 
 	if browser == nil {
-		ch <- &productResult{
-			index: index,
-			result: &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+		ch <- &ProductResult{
+			Index: index,
+			Result: &ReturnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
 				Value:     nil,
 				ScrapeErr: errors.New("browser is not set"),
 			}},
@@ -265,9 +265,9 @@ func scrapeProductAsync(product *rod.Element, index int, browser *rod.Browser, c
 
 	parsedProduct, err := scrapeProduct(product, browser)
 
-	ch <- &productResult{
-		index: index,
-		result: &returnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
+	ch <- &ProductResult{
+		Index: index,
+		Result: &ReturnProduct{ScrapeResult: structs.ScrapeResult[*Product]{
 			Value:     parsedProduct,
 			ScrapeErr: err,
 		}},

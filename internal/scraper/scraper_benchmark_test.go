@@ -15,6 +15,13 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func drainChan[T any](ch chan T) {
+	go func() {
+		for range ch {
+		}
+	}()
+}
+
 func openSearchAndCloseBrowser(b *testing.B, searches ...string) {
 	browser, err := scraper.InitScraper()
 	if err != nil {
@@ -28,7 +35,13 @@ func openSearchAndCloseBrowser(b *testing.B, searches ...string) {
 	}()
 
 	for _, search := range searches {
-		browser.GetKosikProducts(search)
+		totalChan := make(chan int)
+		productsChan := make(chan *scraper.ProductResult)
+
+		drainChan(totalChan)
+		drainChan(productsChan)
+
+		browser.GetKosikProducts(search, totalChan, productsChan)
 	}
 }
 
