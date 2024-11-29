@@ -59,7 +59,7 @@ func main() {
 		productsChan := make(chan *scraperLib.ProductResult)
 
 		var err error
-		var wg sync.WaitGroup
+		wg := sync.WaitGroup{}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -95,7 +95,6 @@ func main() {
 		}
 
 		wg.Wait()
-		fmt.Println(err)
 		if err != nil {
 			log.Fatal().Err(err).Msg("error while getting products")
 		}
