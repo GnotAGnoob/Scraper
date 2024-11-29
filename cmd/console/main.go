@@ -25,10 +25,10 @@ func getDisplayText(value string, err error) string {
 
 // todo progress bar -> need channel
 func main() {
-	isDebug := flag.Bool("debug", false, "sets log level to debug")
+	logLevel := flag.String("log-level", "info", "sets log level")
 	flag.Parse()
 
-	logger.Init(*isDebug)
+	logger.Init(*logLevel)
 
 	scraper, err := scraperLib.InitScraper()
 	if err != nil {

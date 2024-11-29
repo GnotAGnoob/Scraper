@@ -57,6 +57,8 @@ func (s *Scraper) Cleanup() error {
 		return fmt.Errorf("error while closing browser: %w", err)
 	}
 
+	s.browser = nil
+
 	return err
 }
 
