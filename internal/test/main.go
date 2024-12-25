@@ -94,7 +94,6 @@ func GetKosikProducts(search string, totalChan chan<- int, productsChan chan<- *
 
 	for index, product := range parsedSearchData.Products.Items {
 		wg.Add(1)
-		fmt.Println("dfadfa", product.URL)
 		go func(index int, productId string) {
 			defer wg.Done()
 
@@ -107,14 +106,13 @@ func GetKosikProducts(search string, totalChan chan<- int, productsChan chan<- *
 			}
 			fmt.Println("Productxxx", productUrl)
 
-			parsedProductData, err := sendRequest[ProductDetailResponse](&client, http.MethodGet, productUrl.String(), nil)
+			_, err = sendRequest[ProductDetailResponse](&client, http.MethodGet, productUrl.String(), nil)
 			if err != nil {
 				// todo
 				return
 			}
 
-			fmt.Println("dasfad", parsedProductData)
-
+			productsChan <- &ProductResult{}
 		}(index, product.URL)
 	}
 
@@ -129,12 +127,38 @@ func GetKosikProducts(search string, totalChan chan<- int, productsChan chan<- *
 		return err
 	}
 
-	_, err = sendRequest[SearchMoreResponse](&client, http.MethodPost, searchMoreUrl.String(), reqBody)
+	parsedSearchMoreData, err := sendRequest[SearchMoreResponse](&client, http.MethodPost, searchMoreUrl.String(), reqBody)
 	if err != nil {
 		return err
 	}
 
 	// todo these data for loop
+
+	for index, product := range parsedSearchMoreData.Products {
+		wg.Add(1)
+		go func(index int, productId string) {
+			defer wg.Done()
+
+			fmt.Println("Product", productId)
+
+			productUrl, err := urlParams.CreateProductUrl(productId)
+			if err != nil {
+				// todo
+				return
+			}
+			fmt.Println("Productxxx", productUrl)
+
+			_, err = sendRequest[ProductDetailResponse](&client, http.MethodGet, productUrl.String(), nil)
+			if err != nil {
+				// todo
+				return
+			}
+
+			fmt.Println("Product", productId)
+			productsChan <- &ProductResult{}
+
+		}(index, product.URL)
+	}
 
 	wg.Wait()
 
