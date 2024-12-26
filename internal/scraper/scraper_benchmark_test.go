@@ -6,6 +6,7 @@ import (
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/logger"
 	"github.com/GnotAGnoob/kosik-scraper/internal/scraper"
+	scraperShared "github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
 )
 
 func TestMain(m *testing.M) {
@@ -23,25 +24,15 @@ func drainChan[T any](ch chan T) {
 }
 
 func openSearchAndCloseBrowser(b *testing.B, searches ...string) {
-	browser, err := scraper.InitScraper()
-	if err != nil {
-		b.Fatalf("error while initializing scraper: %v", err)
-	}
-	defer func() {
-		err = browser.Cleanup()
-		if err != nil {
-			b.Errorf("error while cleaning up scraper: %v", err)
-		}
-	}()
-
 	for _, search := range searches {
 		totalChan := make(chan int)
-		productsChan := make(chan *scraper.ProductResult)
+		productsChan := make(chan *scraperShared.ProductResult)
 
 		drainChan(totalChan)
 		drainChan(productsChan)
 
-		browser.GetKosikProducts(search, totalChan, productsChan)
+		err := scraper.GetProducts(search, totalChan, productsChan)
+		b.Error(err)
 	}
 }
 

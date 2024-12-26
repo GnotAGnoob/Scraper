@@ -66,39 +66,6 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 	return &finalUrl, nil
 }
 
-func CreateUrlFromPath(path string) (*url.URL, error) {
-	if len(path) == 0 {
-		return nil, errors.New("path term is empty")
-	}
-
-	pathUrl, err := url.Parse(path)
-	if err != nil {
-		return nil, err
-	}
-
-	if pathUrl.IsAbs() {
-		kosikUrl := GetKosikUrl()
-
-		if pathUrl.Hostname() != kosikUrl.Hostname() {
-			return nil, errors.New("invalid URL: hostname does not match")
-		}
-
-		params := pathUrl.Query()
-		isProduct := strings.HasPrefix(pathUrl.Path, "/p")
-
-		if _, ok := params[searchParam]; !ok && !isProduct {
-			return nil, errors.New("no search term in URL or category in Path")
-		}
-	} else {
-		kosikUrl := GetKosikUrl()
-		pathUrl = &kosikUrl
-
-		pathUrl.Path = path
-	}
-
-	return pathUrl, nil
-}
-
 func CreateSearchMoreBody(cursor string) (*bytes.Buffer, error) {
 	data := map[string]string{
 		"limit":  strconv.Itoa(KosikSearchMoreLimit),

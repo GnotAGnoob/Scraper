@@ -1,6 +1,6 @@
-package main
+package kosik
 
-type product struct {
+type Product struct {
 	ID    int     `json:"id"`
 	Name  string  `json:"name"`
 	Image string  `json:"image"`
@@ -10,7 +10,7 @@ type product struct {
 	Unit string `json:"unit"`
 	// RecommendedPrice            float64           `json:"recommendedPrice"`
 	// PercentageDiscount          int               `json:"percentageDiscount"`
-	ProductQuantity productQuantity `json:"productQuantity"`
+	ProductQuantity *productQuantity `json:"productQuantity"`
 	// Labels                      []label           `json:"labels"`
 	// ActionLabel                 *string           `json:"actionLabel"`
 	// CountryCode                 string            `json:"countryCode"`
@@ -118,7 +118,7 @@ type nutritionalValues struct {
 // 	Guaranteed int `json:"guaranteed"`
 // }
 
-type productDetail struct {
+type ProductDetail struct {
 	// AdultOnly        bool               `json:"adultOnly"`
 	// Brand            brand              `json:"brand"`
 	// SapID            string             `json:"sapId"`
@@ -126,7 +126,7 @@ type productDetail struct {
 	// Photos           []string           `json:"photos"`
 	// SupplierInfo     []titleType     `json:"supplierInfo"`
 	// Origin           []titleType           `json:"origin"`
-	Description       []titleType       `json:"description"`
+	// Description       []titleType       `json:"description"`
 	Ingredients       []titleType       `json:"ingredients"`
 	NutritionalValues nutritionalValues `json:"nutritionalValues"`
 	// ParameterGroups  []parameterGroup   `json:"parameterGroups"`
@@ -137,13 +137,13 @@ type productDetail struct {
 }
 
 type productWithDetail struct {
-	product
-	Detail productDetail `json:"detail"`
+	Product
+	Detail ProductDetail `json:"detail"`
 }
 
 type products struct {
 	TotalCount int       `json:"totalCount"`
-	Items      []product `json:"items"`
+	Items      []Product `json:"items"`
 	Cursor     string    `json:"cursor"`
 }
 
@@ -223,7 +223,7 @@ type SearchResponse struct {
 type SearchMoreResponse struct {
 	// Cursor     string    `json:"cursor"`
 	// PharmacyCertificates []interface{} `json:"pharmacyCertificates"`
-	Products []product `json:"products"`
+	Products []Product `json:"products"`
 }
 
 type ProductDetailResponse struct {
