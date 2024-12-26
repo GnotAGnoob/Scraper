@@ -81,6 +81,7 @@ func main() {
 		products := make([]*scraperLibShared.ReturnProduct, total)
 		isAtleastOneProduct := false
 		for i := 0; i < total; i++ {
+			fmt.Printf("\rScraping product %d/%d", i+1, total)
 			productResult, ok := <-productsChan
 			if !ok {
 				if err == nil {
