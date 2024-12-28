@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -30,16 +29,20 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 	params := GetDefaultKosikSearchParams()
 	finalUrl := GetKosikSearchUrl()
 
-	// if the search term is a URL
+	// if the search term was a full URL
 	if searchUrl.IsAbs() {
 		if searchUrl.Hostname() != finalUrl.Hostname() {
 			return nil, errors.New("invalid URL: hostname does not match")
 		}
 
 		searchParams := searchUrl.Query()
+		// add all query parameters to the final URL (later we will overwrite some of them)
+		for key, values := range searchParams {
+			for _, value := range values {
+				params.Add(key, value)
+			}
+		}
 		isCategory := strings.HasPrefix(searchUrl.Path, "/c")
-
-		fmt.Println("params", params, isCategory, searchUrl.Path, strings.Trim(searchUrl.Path, "/"))
 
 		if isCategory {
 			slug := strings.Split(strings.Trim(searchUrl.Path, "/"), "/")
@@ -48,19 +51,19 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 			} else if len(slug) > 1 {
 				return nil, errors.New("url's path does not match category")
 			}
-			params.Add(slugParam, slug[0])
+			params.Set(slugParam, slug[0])
 		} else if param, ok := searchParams[searchParam]; !ok {
 			return nil, errors.New("no search term in URL or category in Path")
 		} else {
-			params.Add(searchTermParam, param[0])
-			params.Add(slugParam, "vyhledavani")
+			params.Set(searchTermParam, param[0])
+			params.Set(slugParam, searchSlug)
 		}
-	} else { // if the search term is just a string
-		params.Add(searchTermParam, search)
-		params.Add(slugParam, "vyhledavani")
+	} else { // if the search term was just a string
+		params.Set(searchTermParam, search)
+		params.Set(slugParam, searchSlug)
 	}
 
-	params.Add(orderByParam, orderByDefinitions.UnitPriceAsc)
+	params.Set(orderByParam, orderByDefinitions.UnitPriceAsc)
 	finalUrl.RawQuery = params.Encode()
 
 	return &finalUrl, nil
@@ -80,13 +83,13 @@ func CreateSearchMoreBody(cursor string) (*bytes.Buffer, error) {
 	return bytes.NewBuffer(jsonData), nil
 }
 
-func CreateProductUrl(productPathId string) (*url.URL, error) {
-	if len(productPathId) == 0 {
+func CreateProductUrl(productPath string) (*url.URL, error) {
+	if len(productPath) == 0 {
 		return nil, errors.New("product id is empty")
 	}
 
 	productUrl := GetKosikProductDetailUrl()
-	newPath, err := url.JoinPath(productUrl.Path, productPathId)
+	newPath, err := url.JoinPath(productUrl.Path, productPath)
 	if err != nil {
 		return nil, err
 	}

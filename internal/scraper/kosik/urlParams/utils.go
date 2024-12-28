@@ -16,6 +16,7 @@ const KosikProductLimit = KosikLimit + KosikSearchMoreLimit
 
 const searchParam = "search"
 const searchTermParam = "search_term"
+const searchSlug = "vyhledavani"
 const slugParam = "slug"
 const orderByParam = "order_by"
 

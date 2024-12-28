@@ -22,8 +22,8 @@ type Product struct {
 	// PlannedStock                *string           `json:"plannedStock"`
 	// RelatedProduct              *string           `json:"relatedProduct"`
 	// MainCategory                mainCategory      `json:"mainCategory"`
-	PricePerUnit     pricePerUnit      `json:"pricePerUnit"`
-	CumulativePrices []cumulativePrice `json:"cumulativePrices"`
+	PricePerUnit pricePerUnit `json:"pricePerUnit"`
+	// CumulativePrices []cumulativePrice `json:"cumulativePrices"`
 	// GiftIDs                     []string          `json:"giftIds"`
 	// Favorite                    bool              `json:"favorite"`
 	// Purchased                   bool              `json:"purchased"`
@@ -71,12 +71,12 @@ type pricePerUnit struct {
 	Unit  string  `json:"unit"`
 }
 
-type cumulativePrice struct {
-	Quantity        int          `json:"quantity"`
-	Price           float64      `json:"price"`
-	PricePerUnit    pricePerUnit `json:"pricePerUnit"`
-	AssociationCode *string      `json:"associationCode"`
-}
+// type cumulativePrice struct {
+// 	Quantity        int          `json:"quantity"`
+// 	Price           float64      `json:"price"`
+// 	PricePerUnit    pricePerUnit `json:"pricePerUnit"`
+// 	AssociationCode *string      `json:"associationCode"`
+// }
 
 // type brand struct {
 // 	ID   int    `json:"id"`
