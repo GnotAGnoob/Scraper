@@ -26,6 +26,7 @@ func getDisplayText(value string, err error) string {
 	return value
 }
 
+// todo handle errors gracefully
 func main() {
 	logLevel := flag.String("log-level", "info", "sets log level")
 	flag.Parse()

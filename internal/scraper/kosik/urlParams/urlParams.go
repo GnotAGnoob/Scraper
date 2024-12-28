@@ -29,6 +29,12 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 		}
 
 		searchParams := searchUrl.Query()
+		// add all query parameters to the final URL (later we will overwrite some of them)
+		for key, values := range searchParams {
+			for _, value := range values {
+				params.Add(key, value)
+			}
+		}
 		isCategory := strings.HasPrefix(searchUrl.Path, "/c")
 
 		if isCategory {
