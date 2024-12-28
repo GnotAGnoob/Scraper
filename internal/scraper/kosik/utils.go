@@ -1,16 +1,18 @@
 package kosik
 
 import (
-	"fmt"
 	"net/url"
 	"strconv"
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/scraper/kosik/urlParams"
 	"github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
 	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
+	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/convertUtils"
+	"github.com/GnotAGnoob/kosik-scraper/pkg/utils/htmlUtils"
 )
 
 const caloriesText = "Energetická hodnota"
+const caloriesUnitText = "kcal"
 const proteinText = "Bílkoviny"
 const fatText = "Tuky"
 const saturatedFatText = "Z toho nasycené mastné kyseliny"
@@ -24,14 +26,12 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 	urlResult := structs.ScrapeResult[*url.URL]{Value: linkUrl, ScrapeErr: err}
 
 	imageUrl, err := url.Parse(productData.Image)
-	imageResult := structs.ScrapeResult[string]{Value: imageUrl.String(), ScrapeErr: err}
+	imageResult := structs.ScrapeResult[*url.URL]{Value: imageUrl, ScrapeErr: err}
 
 	pricePerUnit := shared.PricePerUnit{
 		Value: productData.PricePerUnit.Price,
 		Unit:  productData.PricePerUnit.Unit,
 	}
-
-	fmt.Println("productData.Name", productData.Name, productData.ProductQuantity)
 
 	return &shared.ProductResult{
 		Index: index,
@@ -59,8 +59,11 @@ func transformKosikSearchProductDetailToNutrition(detailData *ProductDetail) *sh
 
 		switch nutrition.Title {
 		case caloriesText:
-			// todo convert if kj
-			calories.Value = parsedValue
+			if nutrition.Unit == caloriesUnitText {
+				calories.Value = parsedValue
+			} else {
+				calories.Value = convertUtils.KjToKcal(parsedValue)
+			}
 			calories.ScrapeErr = err
 		case proteinText:
 			protein.Value = parsedValue
@@ -85,8 +88,15 @@ func transformKosikSearchProductDetailToNutrition(detailData *ProductDetail) *sh
 
 	for _, ingredient := range detailData.Ingredients {
 		if ingredient.Title == ingredientsText {
-			ingredients.Value = ingredient.Value // todo parse if type html
-			ingredients.ScrapeErr = nil
+			if ingredient.Type == "html" {
+				text, err := htmlUtils.ExtractTextFromHtml(ingredient.Value)
+				ingredients.Value = text
+				ingredients.ScrapeErr = err
+
+			} else {
+				ingredients.Value = ingredient.Value
+				ingredients.ScrapeErr = nil
+			}
 			break
 		}
 	}

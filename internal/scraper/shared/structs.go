@@ -25,10 +25,10 @@ type PricePerUnit struct {
 type Product struct {
 	Name         structs.ScrapeResult[string]
 	Price        structs.ScrapeResult[float64]
-	PricePerUnit structs.ScrapeResult[PricePerUnit]
 	Unit         structs.ScrapeResult[string]
+	PricePerUnit structs.ScrapeResult[PricePerUnit]
 	Link         structs.ScrapeResult[*url.URL]
-	ImageUrl     structs.ScrapeResult[string]
+	ImageUrl     structs.ScrapeResult[*url.URL]
 	IsSoldOut    structs.ScrapeResult[bool]
 	Nutrition    structs.ScrapeResult[*Nutrition]
 }

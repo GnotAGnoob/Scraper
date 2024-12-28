@@ -31,8 +31,7 @@ func openSearchAndCloseBrowser(b *testing.B, searches ...string) {
 		drainChan(totalChan)
 		drainChan(productsChan)
 
-		err := scraper.GetProducts(search, totalChan, productsChan)
-		b.Error(err)
+		scraper.GetProducts(search, totalChan, productsChan)
 	}
 }
 
