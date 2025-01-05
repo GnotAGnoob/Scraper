@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -52,7 +51,6 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 	}
 
 	params.Set(orderByParam, orderByDefinitions.UnitPriceAsc)
-	fmt.Println("PARAMS", params)
 	finalUrl.RawQuery = params.Encode()
 
 	return &finalUrl, nil
