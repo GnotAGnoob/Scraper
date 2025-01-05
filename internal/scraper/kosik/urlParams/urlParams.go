@@ -9,14 +9,6 @@ import (
 	"strings"
 )
 
-// todo zhezcit
-// todo vzit orderby z url / pridat
-// todo test prevzeti url parametru
-// test categories
-// test jen textu
-// test vyhledavani url
-// test nesmyslne url -> neexistujici produkt | kategorie | parametr
-// todo fix slanina, asi neexistuje nejaky nutrition dat pointer
 func CreateSearchUrl(search string) (*url.URL, error) {
 	if len(search) == 0 {
 		return nil, errors.New("search term is empty")
