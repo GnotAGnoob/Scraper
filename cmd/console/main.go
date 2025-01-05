@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/logger"
 	scraperLibShared "github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
-	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 	"github.com/rs/zerolog/log"
 	"github.com/schollz/progressbar/v3"
 
@@ -28,7 +26,6 @@ func getDisplayText(value string, err error) string {
 	return value
 }
 
-// todo handle errors gracefully
 func main() {
 	logLevel := flag.String("log-level", "info", "sets log level")
 	flag.Parse()
@@ -46,7 +43,7 @@ func main() {
 			break
 		}
 
-		bar := getProgressBar("Scraping...")
+		bar := getProgressBar("Scraping...", *logLevel)
 		totalChan := make(chan int)
 		productsChan := make(chan *scraperLibShared.ProductResult)
 
@@ -71,13 +68,8 @@ func main() {
 
 		products := make([]*scraperLibShared.ReturnProduct, total)
 		for i := 0; i < total; i++ {
-			fmt.Printf("\rScraping product %d/%d", i+1, total)
 			productResult, ok := <-productsChan
 			if !ok {
-				if err != nil {
-					log.Fatal().Err(err).Msg("error while getting products")
-				}
-
 				log.Fatal().Msg("channel closed unexpectedly")
 			}
 
@@ -89,22 +81,23 @@ func main() {
 
 		wg.Wait()
 		if err != nil {
-			log.Fatal().Err(err).Msg("error while getting products")
+			log.Err(err).Msg("error while getting products")
+			progressbar.Bprintln(bar, "Error while getting products")
+			bar.Finish()
+			continue
 		}
 
-		tab := NewTable(total)
+		tab := newTable(total)
 
-		for _, product := range products {
-			if product == nil || product.Value == nil || product.ScrapeErr != nil {
-				log.Error().Err(product.ScrapeErr).Msg("error while getting product")
+		for i, product := range products {
+			if product == nil {
+				log.Error().Msg(fmt.Sprintf("product at index %d is nil", i))
 				continue
 			}
-
-			log.Debug().Msgf("Product: %+v", product.Value)
-			log.Debug().Err(product.ScrapeErr)
-			log.Debug().Msgf("Nutritions: %+v", product.Value.Nutrition.Value)
-			log.Debug().Err(product.Value.Nutrition.ScrapeErr)
-			log.Debug().Msg("\n")
+			if product.Value == nil || product.ScrapeErr != nil {
+				log.Err(product.ScrapeErr).Msg(fmt.Sprintf("product at index %d is nil", i))
+				continue
+			}
 
 			availabilityText := "available"
 			if product.Value.IsSoldOut.Value {
@@ -114,30 +107,30 @@ func main() {
 			row := table.Row{
 				getDisplayText(product.Value.Name.Value, product.Value.Name.ScrapeErr),
 				availabilityText,
-				getDisplayText(strconv.FormatFloat(product.Value.Price.Value, 'f', 2, 64), product.Value.Price.ScrapeErr),
+				getDisplayText(formatFloatUnitToString(&product.Value.Price.Value, "Kč"), product.Value.Price.ScrapeErr),
 				getDisplayText(product.Value.Unit.Value, product.Value.Unit.ScrapeErr),
-				getDisplayText(strconv.FormatFloat(product.Value.PricePerUnit.Value.Value, 'f', 2, 64), product.Value.PricePerUnit.ScrapeErr),
+				getDisplayText(formatFloatUnitToString(&product.Value.PricePerUnit.Value.Value, "Kč"), product.Value.PricePerUnit.ScrapeErr),
 				getDisplayText(product.Value.PricePerUnit.Value.Unit, product.Value.PricePerUnit.ScrapeErr),
 			}
 
 			nutrition := product.Value.Nutrition
-			var calories, protein, fat, saturatedFat, carbs, sugar, fiber structs.ScrapeResult[float64]
+			var calories, protein, fat, saturatedFat, carbs, sugar, fiber string
 			if nutrition.Value != nil {
-				calories = nutrition.Value.Calories
-				protein = nutrition.Value.Protein
-				fat = nutrition.Value.Fat
-				saturatedFat = nutrition.Value.SaturatedFat
-				carbs = nutrition.Value.Carbs
-				sugar = nutrition.Value.Sugar
-				fiber = nutrition.Value.Fiber
+				calories = getDisplayText(formatFloatUnitToString(nutrition.Value.Calories.Value, "kcal"), nutrition.Value.Calories.ScrapeErr)
+				protein = getDisplayText(formatFloatUnitToString(nutrition.Value.Protein.Value, "g"), nutrition.Value.Protein.ScrapeErr)
+				fat = getDisplayText(formatFloatUnitToString(nutrition.Value.Fat.Value, "g"), nutrition.Value.Fat.ScrapeErr)
+				saturatedFat = getDisplayText(formatFloatUnitToString(nutrition.Value.SaturatedFat.Value, "g"), nutrition.Value.SaturatedFat.ScrapeErr)
+				carbs = getDisplayText(formatFloatUnitToString(nutrition.Value.Carbs.Value, "g"), nutrition.Value.Carbs.ScrapeErr)
+				sugar = getDisplayText(formatFloatUnitToString(nutrition.Value.Sugar.Value, "g"), nutrition.Value.Sugar.ScrapeErr)
+				fiber = getDisplayText(formatFloatUnitToString(nutrition.Value.Fiber.Value, "g"), nutrition.Value.Fiber.ScrapeErr)
 			}
-			nutritionFields := []structs.ScrapeResult[float64]{calories, protein, fat, saturatedFat, carbs, sugar, fiber}
+			nutritionFields := []string{calories, protein, fat, saturatedFat, carbs, sugar, fiber}
 
 			for _, field := range nutritionFields {
 				if nutrition.ScrapeErr != nil {
 					row = append(row, text.FgRed.Sprint("nutrition error"))
 				} else {
-					row = append(row, getDisplayText(strconv.FormatFloat(field.Value, 'f', -1, 64), field.ScrapeErr))
+					row = append(row, field)
 				}
 			}
 

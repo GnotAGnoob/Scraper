@@ -7,14 +7,14 @@ import (
 )
 
 type Nutrition struct {
-	Calories     structs.ScrapeResult[float64]
-	Protein      structs.ScrapeResult[float64]
-	Fat          structs.ScrapeResult[float64]
-	SaturatedFat structs.ScrapeResult[float64]
-	Carbs        structs.ScrapeResult[float64]
-	Sugar        structs.ScrapeResult[float64]
-	Fiber        structs.ScrapeResult[float64]
-	Ingredients  structs.ScrapeResult[string]
+	Calories     structs.ScrapeResult[*float64]
+	Protein      structs.ScrapeResult[*float64]
+	Fat          structs.ScrapeResult[*float64]
+	SaturatedFat structs.ScrapeResult[*float64]
+	Carbs        structs.ScrapeResult[*float64]
+	Sugar        structs.ScrapeResult[*float64]
+	Fiber        structs.ScrapeResult[*float64]
+	Ingredients  structs.ScrapeResult[*string]
 }
 
 type PricePerUnit struct {

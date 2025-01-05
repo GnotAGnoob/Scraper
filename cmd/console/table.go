@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -43,7 +46,7 @@ func setStyle(tab table.Writer) {
 	tab.Style().Color.RowAlternate = text.Colors{text.BgHiBlack, text.FgHiWhite}
 }
 
-func NewTable(itemsCount int) table.Writer {
+func newTable(itemsCount int) table.Writer {
 	tab := table.NewWriter()
 	tab.SetAutoIndex(true)
 	tab.SetOutputMirror(os.Stdout)
@@ -100,4 +103,16 @@ func NewTable(itemsCount int) table.Writer {
 	setStyle(tab)
 
 	return tab
+}
+
+func formatFloat(value float64) string {
+	num := strconv.FormatFloat(value, 'f', 2, 64)
+	return strings.TrimRight(strings.TrimRight(num, "0"), ".")
+}
+
+func formatFloatUnitToString(value *float64, unit string) string {
+	if value == nil {
+		return ""
+	}
+	return fmt.Sprintf("%s %s", formatFloat(*value), unit)
 }
