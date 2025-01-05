@@ -43,7 +43,7 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 				Unit:         structs.ScrapeResult[string]{Value: productData.Unit},
 				Link:         urlResult,
 				ImageUrl:     imageResult,
-				IsSoldOut:    structs.ScrapeResult[bool]{Value: productData.ProductQuantity != nil && productData.ProductQuantity.Value == 0},
+				IsSoldOut:    structs.ScrapeResult[bool]{Value: productData.MaxInCart == 0},
 			},
 			ScrapeErr: nil,
 		}},
@@ -51,38 +51,54 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 }
 
 func transformKosikSearchProductDetailToNutrition(detailData *ProductDetail) *shared.Nutrition {
-	var calories, protein, fat, saturatedFat, carbs, sugar, fiber structs.ScrapeResult[float64]
-	var ingredients structs.ScrapeResult[string]
+	var calories, protein, fat, saturatedFat, carbs, sugar, fiber structs.ScrapeResult[*float64]
+	var ingredients structs.ScrapeResult[*string]
 
-	for _, nutrition := range detailData.NutritionalValues.Values {
-		parsedValue, err := strconv.ParseFloat(nutrition.Value, 64)
+	if detailData == nil {
+		return &shared.Nutrition{
+			Calories:     calories,
+			Protein:      protein,
+			Fat:          fat,
+			SaturatedFat: saturatedFat,
+			Carbs:        carbs,
+			Sugar:        sugar,
+			Fiber:        fiber,
+			Ingredients:  ingredients,
+		}
+	}
 
-		switch nutrition.Title {
-		case caloriesText:
-			if nutrition.Unit == caloriesUnitText {
-				calories.Value = parsedValue
-			} else {
-				calories.Value = convertUtils.KjToKcal(parsedValue)
+	if detailData.NutritionalValues != nil {
+		for _, nutrition := range detailData.NutritionalValues.Values {
+			parsedValue, err := strconv.ParseFloat(nutrition.Value, 64)
+
+			switch nutrition.Title {
+			case caloriesText:
+				if nutrition.Unit == caloriesUnitText {
+					calories.Value = &parsedValue
+				} else {
+					kcalValue := convertUtils.KjToKcal(parsedValue)
+					calories.Value = &kcalValue
+				}
+				calories.ScrapeErr = err
+			case proteinText:
+				protein.Value = &parsedValue
+				protein.ScrapeErr = err
+			case fatText:
+				fat.Value = &parsedValue
+				fat.ScrapeErr = err
+			case saturatedFatText:
+				saturatedFat.Value = &parsedValue
+				saturatedFat.ScrapeErr = err
+			case carbsText:
+				carbs.Value = &parsedValue
+				carbs.ScrapeErr = err
+			case sugarText:
+				sugar.Value = &parsedValue
+				sugar.ScrapeErr = err
+			case fiberText:
+				fiber.Value = &parsedValue
+				fiber.ScrapeErr = err
 			}
-			calories.ScrapeErr = err
-		case proteinText:
-			protein.Value = parsedValue
-			protein.ScrapeErr = err
-		case fatText:
-			fat.Value = parsedValue
-			fat.ScrapeErr = err
-		case saturatedFatText:
-			saturatedFat.Value = parsedValue
-			saturatedFat.ScrapeErr = err
-		case carbsText:
-			carbs.Value = parsedValue
-			carbs.ScrapeErr = err
-		case sugarText:
-			sugar.Value = parsedValue
-			sugar.ScrapeErr = err
-		case fiberText:
-			fiber.Value = parsedValue
-			fiber.ScrapeErr = err
 		}
 	}
 
@@ -90,11 +106,11 @@ func transformKosikSearchProductDetailToNutrition(detailData *ProductDetail) *sh
 		if ingredient.Title == ingredientsText {
 			if ingredient.Type == "html" {
 				text, err := htmlUtils.ExtractTextFromHtml(ingredient.Value)
-				ingredients.Value = text
+				ingredients.Value = &text
 				ingredients.ScrapeErr = err
 
 			} else {
-				ingredients.Value = ingredient.Value
+				ingredients.Value = &ingredient.Value
 				ingredients.ScrapeErr = nil
 			}
 			break

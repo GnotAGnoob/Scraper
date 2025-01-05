@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ import (
 // test jen textu
 // test vyhledavani url
 // test nesmyslne url -> neexistujici produkt | kategorie | parametr
+// todo fix slanina, asi neexistuje nejaky nutrition dat pointer
 func CreateSearchUrl(search string) (*url.URL, error) {
 	if len(search) == 0 {
 		return nil, errors.New("search term is empty")
@@ -36,12 +38,6 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 		}
 
 		searchParams := searchUrl.Query()
-		// add all query parameters to the final URL (later we will overwrite some of them)
-		for key, values := range searchParams {
-			for _, value := range values {
-				params.Add(key, value)
-			}
-		}
 		isCategory := strings.HasPrefix(searchUrl.Path, "/c")
 
 		if isCategory {
@@ -64,6 +60,7 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 	}
 
 	params.Set(orderByParam, orderByDefinitions.UnitPriceAsc)
+	fmt.Println("PARAMS", params)
 	finalUrl.RawQuery = params.Encode()
 
 	return &finalUrl, nil

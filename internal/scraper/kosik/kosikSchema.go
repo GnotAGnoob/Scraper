@@ -10,12 +10,12 @@ type Product struct {
 	Unit string `json:"unit"`
 	// RecommendedPrice            float64           `json:"recommendedPrice"`
 	// PercentageDiscount          int               `json:"percentageDiscount"`
-	ProductQuantity *productQuantity `json:"productQuantity"`
+	// ProductQuantity *productQuantity `json:"productQuantity"`
 	// Labels                      []label           `json:"labels"`
 	// ActionLabel                 *string           `json:"actionLabel"`
 	// CountryCode                 string            `json:"countryCode"`
 	// Pictographs                 []string          `json:"pictographs"`
-	// MaxInCart                   int               `json:"maxInCart"`
+	MaxInCart int `json:"maxInCart"`
 	// LimitInCart                 *int              `json:"limitInCart"`
 	// FirstOrderDay               *string           `json:"firstOrderDay"`
 	// LastOrderDay                *string           `json:"lastOrderDay"`
@@ -127,8 +127,8 @@ type ProductDetail struct {
 	// SupplierInfo     []titleType     `json:"supplierInfo"`
 	// Origin           []titleType           `json:"origin"`
 	// Description       []titleType       `json:"description"`
-	Ingredients       []titleType       `json:"ingredients"`
-	NutritionalValues nutritionalValues `json:"nutritionalValues"`
+	Ingredients       []titleType        `json:"ingredients"`
+	NutritionalValues *nutritionalValues `json:"nutritionalValues"`
 	// ParameterGroups  []parameterGroup   `json:"parameterGroups"`
 	// BestBefore       bestBefore         `json:"bestBefore"`
 	// AssociationCode string  `json:"associationCode"`

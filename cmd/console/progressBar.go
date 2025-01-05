@@ -1,6 +1,13 @@
 package main
 
-import "github.com/schollz/progressbar/v3"
+import (
+	"github.com/schollz/progressbar/v3"
+)
+
+func getProgressBar(text string, logLevel string) *progressbar.ProgressBar {
+	if logLevel == "debug" {
+		return progressbar.DefaultSilent(100) // return a silent progress bar because it is annoying when debugging
+	}
 
 const termWidthTextSubtraction = 30
 

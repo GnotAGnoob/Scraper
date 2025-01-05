@@ -23,7 +23,7 @@ func drainChan[T any](ch chan T) {
 	}()
 }
 
-func openSearchAndCloseBrowser(b *testing.B, searches ...string) {
+func openSearchAndCloseBrowser(searches ...string) {
 	for _, search := range searches {
 		totalChan := make(chan int)
 		productsChan := make(chan *scraperShared.ProductResult)
@@ -37,12 +37,12 @@ func openSearchAndCloseBrowser(b *testing.B, searches ...string) {
 
 func BenchmarkScrape(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		openSearchAndCloseBrowser(b, "susenky", "https://www.kosik.cz/c1319-slane?orderBy=unit-price-asc")
+		openSearchAndCloseBrowser("susenky", "https://www.kosik.cz/c1319-slane?orderBy=unit-price-asc")
 	}
 }
 
 func BenchmarkNotFoundScrape(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		openSearchAndCloseBrowser(b, "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
+		openSearchAndCloseBrowser("wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww")
 	}
 }

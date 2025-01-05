@@ -8,8 +8,6 @@ import (
 // todo add the setting of the address for kosik site
 // todo debug logs
 // todo handle timeout => send what was found and errors for the rest
-// todo parse things to floats / ints
-// todo sometimes the calories are not found but there are joules instead
 // todo caching?
 // todo add the ability to scrape other sites
 // todo test timeout

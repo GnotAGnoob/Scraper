@@ -1,7 +1,6 @@
 package kosik
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"sync"
@@ -18,15 +17,15 @@ func scrapeProductAsync(index int, product *Product, client *http.Client, ch cha
 	productResult := transformKosikSearchProductToProduct(index, product)
 	productLink := productResult.Result.Value.Link
 
-	fmt.Println("productLink", productLink, index)
-
 	if productLink.ScrapeErr != nil {
 		ch <- productResult
 		return
 	}
+	log.Debug().Msgf("Scraping nutritions for %d %s at %s", index, product.Name, productLink.Value.String())
 
 	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](client, http.MethodGet, productLink.Value.String(), nil)
 	if err != nil {
+		productResult.Result.Value.Nutrition.ScrapeErr = err
 		ch <- productResult
 		return
 	}
@@ -50,6 +49,7 @@ func GetProducts(search string, totalChan chan<- int, productsChan chan<- *share
 	if err != nil {
 		return err
 	}
+	log.Debug().Msgf("Searching for %s", searchUrl.String())
 
 	parsedSearchData, err := httpUtils.SendRequest[SearchResponse](&client, http.MethodGet, searchUrl.String(), nil)
 	if err != nil {
@@ -78,6 +78,7 @@ func GetProducts(search string, totalChan chan<- int, productsChan chan<- *share
 	}
 
 	searchMoreUrl := urlParams.GetKosikSearchMoreUrl()
+	log.Debug().Msgf("Searching for more products at %s", searchMoreUrl.String())
 
 	reqBody, err := urlParams.CreateSearchMoreBody(parsedSearchData.Products.Cursor)
 	if err != nil {
@@ -91,7 +92,7 @@ func GetProducts(search string, totalChan chan<- int, productsChan chan<- *share
 
 	for index, product := range parsedSearchMoreData.Products {
 		wg.Add(1)
-		go scrapeProductAsync(index, &product, &client, productsChan, &wg)
+		go scrapeProductAsync(index+len(parsedSearchData.Products.Items), &product, &client, productsChan, &wg)
 	}
 
 	wg.Wait()
