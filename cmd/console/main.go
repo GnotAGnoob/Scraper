@@ -108,7 +108,7 @@ func main() {
 
 		for i, product := range products {
 			if product == nil {
-				log.Error().Msg(fmt.Sprintf("product at index %d is nil", i))
+				log.Debug().Msg(fmt.Sprintf("product at index %d is nil", i))
 				continue
 			}
 			if product.ScrapeErr != nil {
