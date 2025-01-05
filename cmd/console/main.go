@@ -26,7 +26,6 @@ func getDisplayText(value string, err error) string {
 	return value
 }
 
-// todo handle errors gracefully
 func main() {
 	logLevel := flag.String("log-level", "info", "sets log level")
 	flag.Parse()
@@ -82,7 +81,6 @@ func main() {
 		products := make([]*scraperLibShared.ReturnProduct, total)
 		isAtleastOneProduct := false
 		for i := 0; i < total; i++ {
-			fmt.Printf("\rScraping product %d/%d", i+1, total)
 			productResult, ok := <-productsChan
 			if !ok {
 				if err == nil {
