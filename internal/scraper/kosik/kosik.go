@@ -15,10 +15,12 @@ func scrapeProductAsync(index int, product *Product, client *http.Client, ch cha
 	defer wg.Done()
 
 	productResult := transformKosikSearchProductToProduct(index, product)
+	defer func() {
+		ch <- productResult
+	}()
 	productLink := productResult.Result.Value.Link
 
 	if productLink.ScrapeErr != nil {
-		ch <- productResult
 		return
 	}
 	log.Debug().Msgf("Scraping nutritions for %d %s at %s", index, product.Name, productLink.Value.String())
@@ -26,13 +28,10 @@ func scrapeProductAsync(index int, product *Product, client *http.Client, ch cha
 	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](client, http.MethodGet, productLink.Value.String(), nil)
 	if err != nil {
 		productResult.Result.Value.Nutrition.ScrapeErr = err
-		ch <- productResult
 		return
 	}
 
 	productResult.Result.Value.Nutrition.Value = transformKosikSearchProductDetailToNutrition(&parsedNutritionData.Product.Detail)
-
-	ch <- productResult
 }
 
 func GetProducts(search string, totalChan chan<- int, productsChan chan<- *shared.ProductResult) error {
