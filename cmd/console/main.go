@@ -79,6 +79,7 @@ func main() {
 		barChunk := float64(100) / float64(total)
 
 		products := make([]*scraperLibShared.ReturnProduct, total)
+		isAtleastOneProduct := false
 		for i := 0; i < total; i++ {
 			productResult, ok := <-productsChan
 			if !ok {
@@ -88,6 +89,7 @@ func main() {
 
 				break
 			}
+			isAtleastOneProduct = true
 
 			progress := int(math.Ceil((float64(i+1) * barChunk)))
 			bar.Set(progress)
@@ -96,8 +98,7 @@ func main() {
 		}
 
 		wg.Wait()
-		if err != nil {
-			fmt.Println("Error while scraping products", products)
+		if !isAtleastOneProduct {
 			bar.Finish()
 			log.Err(err).Msg("error while getting products")
 			continue
@@ -107,7 +108,7 @@ func main() {
 
 		for i, product := range products {
 			if product == nil {
-				log.Error().Msg(fmt.Sprintf("product at index %d is nil", i))
+				log.Debug().Msg(fmt.Sprintf("product at index %d is nil", i))
 				continue
 			}
 			if product.Value == nil || product.ScrapeErr != nil {
