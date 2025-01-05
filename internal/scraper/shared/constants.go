@@ -3,4 +3,4 @@ package shared
 import "time"
 
 // timeouts
-const RequestTimeout = time.Second * 10
+const RequestTimeout = time.Second * 5

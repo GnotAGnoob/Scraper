@@ -56,7 +56,19 @@ func main() {
 		}()
 
 		total, ok := <-totalChan
-		if !ok || total == 0 {
+		if err != nil {
+			bar.Finish()
+			log.Err(err).Msg("Error while getting products")
+			continue
+		}
+
+		if !ok {
+			bar.Finish()
+			fmt.Println("Unexpected error while getting total products")
+			continue
+		}
+
+		if total == 0 {
 			bar.Finish()
 			fmt.Println("No products found")
 			continue
@@ -70,7 +82,11 @@ func main() {
 		for i := 0; i < total; i++ {
 			productResult, ok := <-productsChan
 			if !ok {
-				log.Fatal().Msg("channel closed unexpectedly")
+				if err == nil {
+					log.Fatal().Msg("channel closed unexpectedly")
+				}
+
+				break
 			}
 
 			progress := int(math.Ceil((float64(i+1) * barChunk)))
@@ -81,9 +97,9 @@ func main() {
 
 		wg.Wait()
 		if err != nil {
-			log.Err(err).Msg("error while getting products")
-			progressbar.Bprintln(bar, "Error while getting products")
+			fmt.Println("Error while scraping products", products)
 			bar.Finish()
+			log.Err(err).Msg("error while getting products")
 			continue
 		}
 
