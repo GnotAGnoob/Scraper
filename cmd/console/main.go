@@ -43,7 +43,7 @@ func main() {
 			break
 		}
 
-		bar := getProgressBar("Scraping...", *logLevel)
+		bar := getProgressBar("Scraping...", *logLevel == "debug")
 		totalChan := make(chan int)
 		productsChan := make(chan *scraperLibShared.ProductResult)
 
@@ -58,19 +58,19 @@ func main() {
 		total, ok := <-totalChan
 		if err != nil {
 			bar.Finish()
-			log.Err(err).Msg("Error while getting products")
+			log.Error().Err(err).Msg("Error while getting products")
 			continue
 		}
 
 		if !ok {
 			bar.Finish()
-			fmt.Println("Unexpected error while getting total products")
+			log.Error().Msg("Unexpected error while getting total products")
 			continue
 		}
 
 		if total == 0 {
 			bar.Finish()
-			fmt.Println("No products found")
+			log.Error().Msg("No products found")
 			continue
 		}
 
@@ -100,7 +100,7 @@ func main() {
 		wg.Wait()
 		if !isAtleastOneProduct {
 			bar.Finish()
-			log.Err(err).Msg("error while getting products")
+			log.Error().Err(err).Msg("error while getting products")
 			continue
 		}
 
@@ -108,11 +108,15 @@ func main() {
 
 		for i, product := range products {
 			if product == nil {
-				log.Debug().Msg(fmt.Sprintf("product at index %d is nil", i))
+				log.Error().Msg(fmt.Sprintf("product at index %d is nil", i))
 				continue
 			}
-			if product.Value == nil || product.ScrapeErr != nil {
-				log.Err(product.ScrapeErr).Msg(fmt.Sprintf("product at index %d is nil", i))
+			if product.ScrapeErr != nil {
+				log.Error().Err(product.ScrapeErr).Msg(fmt.Sprintf("product error at index %d is nil", i))
+				continue
+			}
+			if product.Value == nil {
+				log.Error().Msg(fmt.Sprintf("product value at index %d is nil", i))
 				continue
 			}
 

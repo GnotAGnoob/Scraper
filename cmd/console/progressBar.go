@@ -4,8 +4,8 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-func getProgressBar(text string, logLevel string) *progressbar.ProgressBar {
-	if logLevel == "debug" {
+func getProgressBar(text string, isSilent bool) *progressbar.ProgressBar {
+	if isSilent {
 		return progressbar.DefaultSilent(100) // return a silent progress bar because it is annoying when debugging
 	}
 
