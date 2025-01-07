@@ -94,7 +94,5 @@ func GetProducts(search string, totalChan chan<- int, productsChan chan<- *share
 		go scrapeProductAsync(index+len(parsedSearchData.Products.Items), &product, &client, productsChan, &wg)
 	}
 
-	wg.Wait()
-
 	return err
 }
