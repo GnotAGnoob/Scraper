@@ -107,5 +107,6 @@ func formatFloatUnitToString(value *float64, unit string) string {
 	if value == nil {
 		return ""
 	}
+
 	return fmt.Sprintf("%s %s", formatFloat(*value), unit)
 }
