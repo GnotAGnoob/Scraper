@@ -72,7 +72,7 @@ func CreateSearchMoreBody(cursor string) (*bytes.Buffer, error) {
 
 func CreateProductUrl(productPath string) (*url.URL, error) {
 	if len(productPath) == 0 {
-		return nil, errors.New("product id is empty")
+		return nil, errors.New("product path is empty")
 	}
 
 	productUrl := GetKosikProductDetailUrl()

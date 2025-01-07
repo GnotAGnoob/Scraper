@@ -22,6 +22,10 @@ const fiberText = "Vláknina"
 const ingredientsText = "Složení"
 
 func transformKosikSearchProductToProduct(index int, productData *Product) *shared.ProductResult {
+	if productData == nil {
+		return nil
+	}
+
 	linkUrl, err := urlParams.CreateProductUrl(productData.URL)
 	urlResult := structs.ScrapeResult[*url.URL]{Value: linkUrl, ScrapeErr: err}
 
@@ -55,16 +59,7 @@ func transformKosikSearchProductDetailToNutrition(detailData *ProductDetail) *sh
 	var ingredients structs.ScrapeResult[*string]
 
 	if detailData == nil {
-		return &shared.Nutrition{
-			Calories:     calories,
-			Protein:      protein,
-			Fat:          fat,
-			SaturatedFat: saturatedFat,
-			Carbs:        carbs,
-			Sugar:        sugar,
-			Fiber:        fiber,
-			Ingredients:  ingredients,
-		}
+		return nil
 	}
 
 	if detailData.NutritionalValues != nil {
