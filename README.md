@@ -1,14 +1,12 @@
 # ScrapeMonkey
 
-ScrapeMonkey - is a project designed to scrape product information from online food stores writteb in Go. Currently, it supports scraping products from Kosik.cz, but the plan is to add additional stores in the future.
+ScrapeMonkey - is a project designed to scrape product information from online food stores written in Go. Currently, it supports scraping products from Kosik.cz, but the plan is to add additional stores in the future.
 
 ## Features
 
 Efficient Scraping: Extracts product data such as names, prices, descriptions, and more.
 
 Modular Design: Built with a flexible architecture to add new stores with minimal effort.
-
-Written in Go: Takes advantage of Go's performance and concurrency for quick and reliable data scraping.
 
 ## Getting Started
 
