@@ -1,6 +1,6 @@
-# Go Food Store Scraper
+# ScrapeMonkey
 
-Go Food Store Scraper is a project designed to scrape product information from online food stores. Currently, it supports scraping products from Kosik.cz, but the plan is to add additional stores in the future.
+ScrapeMonkey - is a project designed to scrape product information from online food stores writteb in Go. Currently, it supports scraping products from Kosik.cz, but the plan is to add additional stores in the future.
 
 ## Features
 
@@ -71,3 +71,5 @@ make bench-clean
 - Implement advanced filtering and sorting for scraped data.
 
 - Add more types of user interfaces
+
+- In a distant future, add ai to choose products and analyze the best store to buy from based on the user's prompt.
