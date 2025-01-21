@@ -20,13 +20,13 @@ type Scraper struct {
 
 var scrapper = &Scraper{}
 
-type returnProduct struct {
+type ReturnProduct struct {
 	structs.ScrapeResult[*Product]
 }
 
-type productResult struct {
-	index  int
-	result *returnProduct
+type ProductResult struct {
+	Index  int
+	Result *ReturnProduct
 }
 
 func InitScraper() (*Scraper, error) {
@@ -64,22 +64,26 @@ func (s *Scraper) Cleanup() error {
 
 // todo add the setting of the address for kosik site
 // todo debug logs
-// todo instead of returning array return channel for progress indication
 // todo handle timeout => send what was found and errors for the rest
 // todo parse things to floats / ints
 // todo sometimes the calories are not found but there are joules instead
 // todo caching?
-func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
+func (s *Scraper) GetKosikProducts(search string, totalChan chan<- int, productsChan chan<- *ProductResult) error {
+	defer func() {
+		close(totalChan)
+		close(productsChan)
+	}()
+
 	searchUrl, err := urlParams.CreateSearchUrl(search)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	page, err := s.browser.Page(proto.TargetCreateTarget{
 		URL: searchUrl.String(),
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() {
 		err = page.Close()
@@ -101,41 +105,37 @@ func (s *Scraper) GetKosikProducts(search string) ([]*returnProduct, error) {
 		scraping.RaceSelector{Selector: productPageWaitSelector},
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if isNotFoundPage {
-		return []*returnProduct{}, err
+		totalChan <- 0
+		return err
 	}
 
 	productSelector := "[data-tid='product-box']:not(:has(.product-amount--vendor-pharmacy))"
 	products, err := page.Sleeper(rod.NotFoundSleeper).Elements(productSelector)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	log.Info().Msgf("Found %d products", len(products))
+	log.Debug().Msgf("Found %d products", len(products))
+
+	totalChan <- len(products)
 
 	if len(products) == 0 {
-		return []*returnProduct{}, err
+		return err
 	}
 
-	parsedProducts := make([]*returnProduct, len(products))
 	browser := s.browser.Timeout(time.Duration(len(products)) * perProductTimeout)
 
 	wg := sync.WaitGroup{}
-	ch := make(chan *productResult, len(products))
 
 	for index, product := range products {
 		wg.Add(1)
-		go scrapeProductAsync(product, index, browser, ch, &wg)
+		go scrapeProductAsync(product, index, browser, productsChan, &wg)
 	}
 
 	wg.Wait()
-	close(ch)
 
-	for result := range ch {
-		parsedProducts[result.index] = result.result
-	}
-
-	return parsedProducts, err
+	return err
 }

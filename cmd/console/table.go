@@ -6,7 +6,6 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
-	"golang.org/x/term"
 )
 
 type headerCategory struct {
@@ -29,8 +28,6 @@ var headers = []headerCategory{
 	{Name: "Fiber", WidthWeight: 0.75},
 }
 
-const maxTableWidth = 250
-const minTableWidth = 80
 const extraItemWidth = 2 // 2 because of a padding on each side
 
 func setStyle(tab table.Writer) {
@@ -52,11 +49,7 @@ func NewTable(itemsCount int) table.Writer {
 		sumWidthWeight += header.WidthWeight
 	}
 
-	termWidth, _, err := term.GetSize(int(os.Stdout.Fd()))
-	if err != nil {
-		termWidth = minTableWidth
-	}
-	width := math.Min(float64(termWidth), maxTableWidth)
+	width := getTermWidth()
 	indexDigitsCount := int(math.Log10(float64(itemsCount)) + 1)                      // number of digits in itemsCount
 	width -= float64(len(headers)*extraItemWidth + extraItemWidth + indexDigitsCount) // subtracting extra non-item width
 	widthFragment := float64(width) / float64(sumWidthWeight)

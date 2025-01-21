@@ -4,12 +4,15 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/logger"
 	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 	"github.com/rs/zerolog/log"
+	"github.com/schollz/progressbar/v3"
 
 	scraperLib "github.com/GnotAGnoob/kosik-scraper/internal/scraper"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -23,7 +26,6 @@ func getDisplayText(value string, err error) string {
 	return value
 }
 
-// todo progress bar -> need channel
 func main() {
 	logLevel := flag.String("log-level", "info", "sets log level")
 	flag.Parse()
@@ -52,17 +54,52 @@ func main() {
 			break
 		}
 
-		products, err := scraper.GetKosikProducts(search)
+		bar := getProgressBar("Scraping...")
+		totalChan := make(chan int)
+		productsChan := make(chan *scraperLib.ProductResult)
+
+		var err error
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err = scraper.GetKosikProducts(search, totalChan, productsChan)
+		}()
+
+		total, ok := <-totalChan
+		if !ok || total == 0 {
+			bar.Finish()
+			fmt.Println("No products found")
+			continue
+		}
+
+		progressbar.Bprintf(bar, "Found %d products\n", total)
+
+		barChunk := float64(100) / float64(total)
+
+		products := make([]*scraperLib.ReturnProduct, total)
+		for i := 0; i < total; i++ {
+			productResult, ok := <-productsChan
+			if !ok {
+				if err != nil {
+					log.Fatal().Err(err).Msg("error while getting products")
+				}
+
+				log.Fatal().Msg("channel closed unexpectedly")
+			}
+
+			progress := int(math.Ceil((float64(i+1) * barChunk)))
+			bar.Set(progress)
+
+			products[productResult.Index] = productResult.Result
+		}
+
+		wg.Wait()
 		if err != nil {
 			log.Fatal().Err(err).Msg("error while getting products")
 		}
 
-		if len(products) == 0 {
-			fmt.Print("No products found\n\n")
-			continue
-		}
-
-		tab := NewTable(len(products))
+		tab := NewTable(total)
 
 		for _, product := range products {
 			if product == nil || product.Value == nil || product.ScrapeErr != nil {
@@ -113,6 +150,7 @@ func main() {
 			tab.AppendRow(row)
 		}
 
+		bar.Clear()
 		tab.Render()
 		fmt.Println()
 	}
