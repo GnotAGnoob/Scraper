@@ -26,13 +26,60 @@ func getDisplayText(value string, err error) string {
 	return value
 }
 
+type States int
+
+const (
+	Start States = iota
+	Search
+	Results
+	Sorting
+)
+
+type StateMachine struct {
+	State         States
+	PreviousState States
+}
+
+func (s *StateMachine) SetState(state States) {
+	s.PreviousState = s.State
+	s.State = state
+}
+
+func start() {
+	handleTerminalMenu([]menuItem{
+		{text: "Search", key: "enter", action: func() { state }},
+		exitMenuItem,
+	})
+}
+
+func search() {
+}
+func resultsMenu() {
+}
+func sortResults() {
+}
+
 func main() {
 	logLevel := flag.String("log-level", "info", "sets log level")
 	flag.Parse()
 
 	logger.Init(*logLevel)
-
 	scanner := bufio.NewScanner(os.Stdin)
+	state := StateMachine{State: Start}
+
+	fmt.Println("Welcome to")
+	fmt.Println(asciiAppLogo)
+
+	switch state.State {
+	case Start:
+		start()
+	case Search:
+		search()
+	case Results:
+		resultsMenu()
+	case Sorting:
+		sortResults()
+	}
 
 	for {
 		fmt.Print("Enter query or full url: ")
