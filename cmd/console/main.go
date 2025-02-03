@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/logger"
-	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
+	scraperLibShared "github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
 	"github.com/rs/zerolog/log"
 	"github.com/schollz/progressbar/v3"
 
@@ -32,17 +32,6 @@ func main() {
 
 	logger.Init(*logLevel)
 
-	scraper, err := scraperLib.InitScraper()
-	if err != nil {
-		log.Fatal().Err(err).Msg("error while initializing scraper")
-	}
-	defer func() {
-		err = scraper.Cleanup()
-		if err != nil {
-			log.Fatal().Err(err).Msg("error while cleaning up scraper")
-		}
-	}()
-
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
@@ -54,22 +43,34 @@ func main() {
 			break
 		}
 
-		bar := getProgressBar("Scraping...")
+		bar := getProgressBar("Scraping...", *logLevel == "debug")
 		totalChan := make(chan int)
-		productsChan := make(chan *scraperLib.ProductResult)
+		productsChan := make(chan *scraperLibShared.ProductResult)
 
 		var err error
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = scraper.GetKosikProducts(search, totalChan, productsChan)
+			err = scraperLib.GetProducts(search, totalChan, productsChan)
 		}()
 
 		total, ok := <-totalChan
-		if !ok || total == 0 {
+		if err != nil {
 			bar.Finish()
-			fmt.Println("No products found")
+			log.Error().Err(err).Msg("Error while getting products")
+			continue
+		}
+
+		if !ok {
+			bar.Finish()
+			log.Error().Msg("Unexpected error while getting total products")
+			continue
+		}
+
+		if total == 0 {
+			bar.Finish()
+			log.Error().Msg("No products found")
 			continue
 		}
 
@@ -77,16 +78,18 @@ func main() {
 
 		barChunk := float64(100) / float64(total)
 
-		products := make([]*scraperLib.ReturnProduct, total)
+		products := make([]*scraperLibShared.ReturnProduct, total)
+		isAtleastOneProduct := false
 		for i := 0; i < total; i++ {
 			productResult, ok := <-productsChan
 			if !ok {
-				if err != nil {
-					log.Fatal().Err(err).Msg("error while getting products")
+				if err == nil {
+					log.Fatal().Msg("channel closed unexpectedly")
 				}
 
-				log.Fatal().Msg("channel closed unexpectedly")
+				break
 			}
+			isAtleastOneProduct = true
 
 			progress := int(math.Ceil((float64(i+1) * barChunk)))
 			bar.Set(progress)
@@ -95,55 +98,60 @@ func main() {
 		}
 
 		wg.Wait()
-		if err != nil {
-			log.Fatal().Err(err).Msg("error while getting products")
+		if !isAtleastOneProduct {
+			bar.Finish()
+			log.Error().Err(err).Msg("error while getting products")
+			continue
 		}
 
-		tab := NewTable(total)
+		tab := newTable(total)
 
-		for _, product := range products {
-			if product == nil || product.Value == nil || product.ScrapeErr != nil {
-				log.Error().Err(product.ScrapeErr).Msg("error while getting product")
+		for i, product := range products {
+			if product == nil {
+				log.Error().Msg(fmt.Sprintf("product at index %d is nil", i))
+				continue
+			}
+			if product.ScrapeErr != nil {
+				log.Error().Err(product.ScrapeErr).Msg(fmt.Sprintf("product error at index %d is nil", i))
+				continue
+			}
+			if product.Value == nil {
+				log.Error().Msg(fmt.Sprintf("product value at index %d is nil", i))
 				continue
 			}
 
-			log.Debug().Msgf("Product: %+v", product.Value)
-			log.Debug().Err(product.ScrapeErr)
-			log.Debug().Msgf("Nutritions: %+v", product.Value.Nutrition.Value)
-			log.Debug().Err(product.Value.Nutrition.ScrapeErr)
-			log.Debug().Msg("\n")
-
 			availabilityText := "available"
-			if product.Value.IsSoldOut {
+			if product.Value.IsSoldOut.Value {
 				availabilityText = "sold out"
 			}
 
 			row := table.Row{
 				getDisplayText(product.Value.Name.Value, product.Value.Name.ScrapeErr),
 				availabilityText,
-				getDisplayText(product.Value.Price.Value, product.Value.Price.ScrapeErr),
-				getDisplayText(product.Value.PricePerKg.Value, product.Value.PricePerKg.ScrapeErr),
+				getDisplayText(formatFloatUnitToString(&product.Value.Price.Value, "Kč"), product.Value.Price.ScrapeErr),
 				getDisplayText(product.Value.Unit.Value, product.Value.Unit.ScrapeErr),
+				getDisplayText(formatFloatUnitToString(&product.Value.PricePerUnit.Value.Value, "Kč"), product.Value.PricePerUnit.ScrapeErr),
+				getDisplayText(product.Value.PricePerUnit.Value.Unit, product.Value.PricePerUnit.ScrapeErr),
 			}
 
 			nutrition := product.Value.Nutrition
-			var calories, protein, fat, saturatedFat, carbs, sugar, fiber structs.ScrapeResult[string]
+			var calories, protein, fat, saturatedFat, carbs, sugar, fiber string
 			if nutrition.Value != nil {
-				calories = nutrition.Value.Calories
-				protein = nutrition.Value.Protein
-				fat = nutrition.Value.Fat
-				saturatedFat = nutrition.Value.SaturatedFat
-				carbs = nutrition.Value.Carbs
-				sugar = nutrition.Value.Sugar
-				fiber = nutrition.Value.Fiber
+				calories = getDisplayText(formatFloatUnitToString(nutrition.Value.Calories.Value, "kcal"), nutrition.Value.Calories.ScrapeErr)
+				protein = getDisplayText(formatFloatUnitToString(nutrition.Value.Protein.Value, "g"), nutrition.Value.Protein.ScrapeErr)
+				fat = getDisplayText(formatFloatUnitToString(nutrition.Value.Fat.Value, "g"), nutrition.Value.Fat.ScrapeErr)
+				saturatedFat = getDisplayText(formatFloatUnitToString(nutrition.Value.SaturatedFat.Value, "g"), nutrition.Value.SaturatedFat.ScrapeErr)
+				carbs = getDisplayText(formatFloatUnitToString(nutrition.Value.Carbs.Value, "g"), nutrition.Value.Carbs.ScrapeErr)
+				sugar = getDisplayText(formatFloatUnitToString(nutrition.Value.Sugar.Value, "g"), nutrition.Value.Sugar.ScrapeErr)
+				fiber = getDisplayText(formatFloatUnitToString(nutrition.Value.Fiber.Value, "g"), nutrition.Value.Fiber.ScrapeErr)
 			}
-			nutritionFields := []structs.ScrapeResult[string]{calories, protein, fat, saturatedFat, carbs, sugar, fiber}
+			nutritionFields := []string{calories, protein, fat, saturatedFat, carbs, sugar, fiber}
 
 			for _, field := range nutritionFields {
 				if nutrition.ScrapeErr != nil {
 					row = append(row, text.FgRed.Sprint("nutrition error"))
 				} else {
-					row = append(row, getDisplayText(field.Value, field.ScrapeErr))
+					row = append(row, field)
 				}
 			}
 
@@ -155,7 +163,7 @@ func main() {
 		fmt.Println()
 	}
 
-	err = scanner.Err()
+	err := scanner.Err()
 	if err != nil {
 		log.Fatal().Err(err).Msg("error while scanning input")
 	}

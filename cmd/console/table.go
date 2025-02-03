@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/jedib0t/go-pretty/v6/text"
@@ -17,8 +20,9 @@ var headers = []headerCategory{
 	{Name: "Product", WidthWeight: 4},
 	{Name: "Status", WidthWeight: 1},
 	{Name: "Price", WidthWeight: 1},
-	{Name: "Price per kg", WidthWeight: 1.75},
-	{Name: "Unit", WidthWeight: 1},
+	{Name: "Unit", WidthWeight: 0.75},
+	{Name: "Price per unit", WidthWeight: 1.25},
+	{Name: "Ppu Unit", WidthWeight: 0.75},
 	{Name: "Calories", WidthWeight: 1},
 	{Name: "Protein", WidthWeight: 0.8},
 	{Name: "Fat", WidthWeight: 0.75},
@@ -39,7 +43,7 @@ func setStyle(tab table.Writer) {
 	tab.Style().Color.RowAlternate = text.Colors{text.BgHiBlack, text.FgHiWhite}
 }
 
-func NewTable(itemsCount int) table.Writer {
+func newTable(itemsCount int) table.Writer {
 	tab := table.NewWriter()
 	tab.SetAutoIndex(true)
 	tab.SetOutputMirror(os.Stdout)
@@ -92,4 +96,17 @@ func NewTable(itemsCount int) table.Writer {
 	setStyle(tab)
 
 	return tab
+}
+
+func formatFloat(value float64) string {
+	num := strconv.FormatFloat(value, 'f', 2, 64)
+	return strings.TrimRight(strings.TrimRight(num, "0"), ".")
+}
+
+func formatFloatUnitToString(value *float64, unit string) string {
+	if value == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s %s", formatFloat(*value), unit)
 }
