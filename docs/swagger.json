@@ -1,0 +1,152 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Convert free-form recipes into structured Kosik product suggestions.",
+        "title": "Recipe to Kosik API",
+        "contact": {},
+        "version": "0.1"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/api/v1/recipe": {
+            "post": {
+                "description": "Accepts raw recipe text, extracts structured ingredients via Gemini, and fetches the first Kosik product per ingredient.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "recipe"
+                ],
+                "summary": "Extracts ingredients and matches Kosik products",
+                "parameters": [
+                    {
+                        "description": "Recipe input",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.RecipeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.RecipeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "api.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.RecipeRequest": {
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Ingredient": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "notes": {
+                    "type": "string"
+                },
+                "quantity_grams": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.IngredientMatch": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "ingredient": {
+                    "$ref": "#/definitions/model.Ingredient"
+                },
+                "product": {
+                    "$ref": "#/definitions/model.ProductSummary"
+                }
+            }
+        },
+        "model.PricePerUnit": {
+            "type": "object",
+            "properties": {
+                "unit": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.ProductSummary": {
+            "type": "object",
+            "properties": {
+                "image_url": {
+                    "type": "string"
+                },
+                "is_sold_out": {
+                    "type": "boolean"
+                },
+                "link": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "price_per_unit": {
+                    "$ref": "#/definitions/model.PricePerUnit"
+                },
+                "unit": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.RecipeResponse": {
+            "type": "object",
+            "properties": {
+                "matches": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.IngredientMatch"
+                    }
+                }
+            }
+        }
+    }
+}

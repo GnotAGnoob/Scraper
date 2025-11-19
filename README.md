@@ -1,73 +1,60 @@
-# ScrapeMonkey
+# Recipe → Kosik Cart
 
-ScrapeMonkey - is a project designed to scrape product information from online food stores written in Go. Currently, it supports scraping products from Kosik.cz, but the plan is to add additional stores in the future.
+LLM-assisted ingredient extraction plus the existing Kosik scraper. Paste any recipe, Gemini 1.5 Flash returns normalized ingredients, then we concurrently fetch the first valid Kosik hit per ingredient and surface it through a React frontend.
 
-## Features
+## Architecture
 
-Efficient Scraping: Extracts product data such as names, prices, descriptions, and more.
+- **Go backend**
+  - `internal/llm`: Google Gemini 1.5 Flash JSON-mode client (API key via env).
+  - `internal/service`: recipe pipeline + concurrent Kosik fetcher (errgroup + semaphore).
+  - `internal/api`: `POST /api/v1/recipe` handler behind chi, CORS, swagger docs served from `/swagger/index.html`.
+- **React frontend (`frontend/`)**
+  - Vite + TS + neo-brutalist UI.
+  - OpenAPI client generated via `openapi-typescript-codegen` + Axios.
+  - `@tanstack/react-query` to orchestrate POSTs and render product cards.
 
-Modular Design: Built with a flexible architecture to add new stores with minimal effort.
-
-## Getting Started
-
-### Prerequisites
-
-Make sure you have the following installed:
-
-- `Go` (version 1.23 or later)
-
-- installed `make` (optional)
-
-- Internet connection
-
-### Usage
-
-There are predefined commands using makefile, you can use them to build and run the project. If you don't have `make` installed, you can run the commands manually.
-
-#### Console view
-
-##### Build the project
-
-tbd
-
-##### Run the project
+## Backend setup
 
 ```bash
-make con
+export GOOGLE_GEMINI_API_KEY=your-key
+export PORT=8080            # optional
+export KOSIK_WORKERS=4      # optional cap for concurrent scrapes
+
+make server                 # go run ./cmd/server
 ```
 
-##### Run the project in debug mode
+Swagger stays in `docs/`; regenerate after handler changes:
 
 ```bash
-make con-debug
+make swagger
 ```
 
-#### Benchmark
-
-##### Run the benchmark
+## Frontend setup
 
 ```bash
-make bench
+cd frontend
+cp .env.example .env
+echo "VITE_API_BASE_URL=http://localhost:8080" >> .env # adjust per deploy
+npm install
+npm run generate   # re-build the OpenAPI client when swagger changes
+npm run dev        # launches Vite dev server with neo-brutalist UI
 ```
 
-##### View the benchmark results
+The React app reads `VITE_API_BASE_URL`, so dev proxies straight to the Go server while prod can point at any hosted instance.
+
+## Make targets worth remembering
 
 ```bash
-make bench-stat
+make con           # console-based scraping runner
+make con-debug     # verbose logging
+make bench         # go test -bench with tee’d output
+make bench-clean   # drop ./benchmark artifacts
+make frontend-dev  # cd frontend && npm run dev
+make frontend-init # cd frontend && npm install
 ```
 
-##### Clean the benchmark results
+## Notes
 
-```bash
-make bench-clean
-```
-
-### Future Plans
-
-- Add scraping support for more online stores.
-
-- Implement advanced filtering and sorting for scraped data.
-
-- Add more types of user interfaces
-
-- In a distant future, add ai to choose products and analyze the best store to buy from based on the user's prompt.
+- Kosik scraping remains the bottleneck; tweak `KOSIK_WORKERS` if Gemini responses queue faster than HTTP allows.
+- For Gemini costs, cache responses per recipe hash (easy future enhancement).
+- Generated API client lives in `frontend/src/api`; don’t hand edit—use `npm run generate`.

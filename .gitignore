@@ -23,3 +23,8 @@ go.work.sum
 
 # benchmarks
 benchmark
+# frontend artifacts
+frontend/node_modules
+frontend/dist
+frontend/.env
+frontend/.env.local

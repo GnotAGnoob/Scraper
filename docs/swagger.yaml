@@ -1,0 +1,99 @@
+basePath: /api/v1
+definitions:
+  api.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  api.RecipeRequest:
+    properties:
+      text:
+        type: string
+    type: object
+  model.Ingredient:
+    properties:
+      name:
+        type: string
+      notes:
+        type: string
+      quantity_grams:
+        type: number
+    type: object
+  model.IngredientMatch:
+    properties:
+      error:
+        type: string
+      ingredient:
+        $ref: '#/definitions/model.Ingredient'
+      product:
+        $ref: '#/definitions/model.ProductSummary'
+    type: object
+  model.PricePerUnit:
+    properties:
+      unit:
+        type: string
+      value:
+        type: number
+    type: object
+  model.ProductSummary:
+    properties:
+      image_url:
+        type: string
+      is_sold_out:
+        type: boolean
+      link:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      price_per_unit:
+        $ref: '#/definitions/model.PricePerUnit'
+      unit:
+        type: string
+    type: object
+  model.RecipeResponse:
+    properties:
+      matches:
+        items:
+          $ref: '#/definitions/model.IngredientMatch'
+        type: array
+    type: object
+info:
+  contact: {}
+  description: Convert free-form recipes into structured Kosik product suggestions.
+  title: Recipe to Kosik API
+  version: "0.1"
+paths:
+  /api/v1/recipe:
+    post:
+      consumes:
+      - application/json
+      description: Accepts raw recipe text, extracts structured ingredients via Gemini,
+        and fetches the first Kosik product per ingredient.
+      parameters:
+      - description: Recipe input
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.RecipeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.RecipeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Extracts ingredients and matches Kosik products
+      tags:
+      - recipe
+swagger: "2.0"

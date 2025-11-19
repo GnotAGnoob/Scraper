@@ -6,6 +6,10 @@ con: ./cmd/console/main.go
 con-debug:
 	@$(MAKE) con ARGS='-log-level=debug'
 
+.PHONY: server
+server: ./cmd/server/main.go
+	@go run ./cmd/server
+
 .PHONY: bench
 bench:
 	@echo "Enter a name for the benchmark result file (without extension):"; \
@@ -22,3 +26,15 @@ bench-clean:
 .PHONY: bench-stat
 bench-stat:
 	@benchstat benchmark/*.txt
+
+.PHONY: swagger
+swagger:
+	@swag init -g cmd/server/main.go -o docs
+
+.PHONY: frontend-init
+frontend-init:
+	@cd frontend && npm install
+
+.PHONY: frontend-dev
+frontend-dev:
+	@cd frontend && npm run dev
