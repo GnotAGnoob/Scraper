@@ -1,0 +1,117 @@
+swagger: "2.0"
+info:
+  description: "API for converting recipe text to Kosik shopping cart"
+  title: "Recipe to Kosik Cart API"
+  version: "1.0"
+host: "localhost:8080"
+basePath: "/"
+schemes:
+  - "http"
+paths:
+  /health:
+    get:
+      tags:
+        - "health"
+      summary: "Health check endpoint"
+      description: "Check if the API is running"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            type: "object"
+            properties:
+              status:
+                type: "string"
+                example: "ok"
+  /api/v1/recipe:
+    post:
+      tags:
+        - "recipe"
+      summary: "Process recipe text and find matching products"
+      description: "Extracts ingredients from recipe text using AI and searches for matching products on Kosik"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "request"
+          description: "Recipe text"
+          required: true
+          schema:
+            $ref: "#/definitions/RecipeRequest"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: "#/definitions/RecipeResponse"
+        400:
+          description: "Invalid request"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+definitions:
+  RecipeRequest:
+    type: "object"
+    properties:
+      text:
+        type: "string"
+        description: "Recipe text containing ingredients"
+        example: "500g mouky, 250ml mléka, 2 vejce"
+  RecipeResponse:
+    type: "object"
+    properties:
+      products:
+        type: "array"
+        items:
+          $ref: "#/definitions/MatchedProduct"
+  MatchedProduct:
+    type: "object"
+    properties:
+      ingredientName:
+        type: "string"
+        description: "Original ingredient name from recipe"
+        example: "mouka"
+      productName:
+        type: "string"
+        description: "Name of the matched product from Kosik"
+        example: "Hladká mouka pšeničná"
+      price:
+        type: "number"
+        format: "float"
+        description: "Product price in CZK"
+        example: 25.90
+      unit:
+        type: "string"
+        description: "Product unit"
+        example: "kg"
+      imageUrl:
+        type: "string"
+        description: "URL to product image"
+        example: "https://cdn.kosik.cz/..."
+      productUrl:
+        type: "string"
+        description: "URL to product page on Kosik"
+        example: "https://www.kosik.cz/produkt/..."
+      pricePerUnit:
+        type: "number"
+        format: "float"
+        description: "Price per unit"
+        example: 25.90
+      pricePerUnitUnit:
+        type: "string"
+        description: "Unit for price per unit"
+        example: "kg"
+  ErrorResponse:
+    type: "object"
+    properties:
+      error:
+        type: "string"
+        description: "Error message"
+        example: "Invalid request body"
+

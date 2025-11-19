@@ -1,0 +1,130 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API for converting recipe text to Kosik shopping cart",
+    "title": "Recipe to Kosik Cart API",
+    "version": "1.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/api/v1/recipe": {
+      "post": {
+        "description": "Extracts ingredients from recipe text using AI and searches for matching products on Kosik",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["recipe"],
+        "summary": "Process recipe text and find matching products",
+        "parameters": [
+          {
+            "description": "Recipe text",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RecipeRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/RecipeResponse"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Check if the API is running",
+        "produces": ["application/json"],
+        "tags": ["health"],
+        "summary": "Health check endpoint",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "RecipeRequest": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "RecipeResponse": {
+      "type": "object",
+      "properties": {
+        "products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MatchedProduct"
+          }
+        }
+      }
+    },
+    "MatchedProduct": {
+      "type": "object",
+      "properties": {
+        "ingredientName": {
+          "type": "string"
+        },
+        "productName": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "productUrl": {
+          "type": "string"
+        },
+        "pricePerUnit": {
+          "type": "number"
+        },
+        "pricePerUnitUnit": {
+          "type": "string"
+        }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+

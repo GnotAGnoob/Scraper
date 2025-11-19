@@ -23,3 +23,14 @@ go.work.sum
 
 # benchmarks
 benchmark
+
+# Environment variables
+.env
+.env.local
+
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
+frontend/.vite
+frontend/*.local

@@ -22,3 +22,32 @@ bench-clean:
 .PHONY: bench-stat
 bench-stat:
 	@benchstat benchmark/*.txt
+
+.PHONY: server
+server:
+	@go run ./cmd/server
+
+.PHONY: deps
+deps:
+	@go get github.com/go-chi/chi/v5
+	@go get github.com/go-chi/cors
+	@go get github.com/swaggo/http-swagger
+	@go get github.com/google/generative-ai-go/genai
+	@go get google.golang.org/api/option
+	@go get golang.org/x/sync/errgroup
+	@go mod tidy
+
+.PHONY: frontend-install
+frontend-install:
+	@cd frontend && npm install
+
+.PHONY: frontend
+frontend:
+	@cd frontend && npm run dev
+
+.PHONY: dev
+dev:
+	@echo "Starting backend and frontend..."
+	@echo "Backend: http://localhost:8080"
+	@echo "Frontend: http://localhost:5173"
+	@echo "Swagger: http://localhost:8080/swagger/index.html"
