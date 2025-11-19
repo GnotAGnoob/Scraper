@@ -1,0 +1,22 @@
+.input-area {
+  width: 100%;
+  padding: 1.5rem;
+  font-size: 1.125rem;
+  font-family: inherit;
+  border: 4px solid #000;
+  background-color: #fff;
+  box-shadow: 6px 6px 0px #000;
+  resize: vertical;
+  min-height: 200px;
+  outline: none;
+  transition: box-shadow 0.1s ease;
+}
+
+.input-area:focus {
+  box-shadow: 8px 8px 0px #000;
+}
+
+.input-area::placeholder {
+  color: #999;
+}
+

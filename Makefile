@@ -22,3 +22,15 @@ bench-clean:
 .PHONY: bench-stat
 bench-stat:
 	@benchstat benchmark/*.txt
+
+.PHONY: server
+server: ./cmd/server/main.go
+	@go run ./cmd/server $(ARGS)
+
+.PHONY: server-debug
+server-debug:
+	@$(MAKE) server ARGS='-log-level=debug'
+
+.PHONY: swagger
+swagger:
+	@swag init -g cmd/server/main.go -o docs

@@ -23,3 +23,6 @@ go.work.sum
 
 # benchmarks
 benchmark
+
+# environment variables
+.env
