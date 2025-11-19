@@ -6,6 +6,11 @@ con: ./cmd/console/main.go
 con-debug:
 	@$(MAKE) con ARGS='-log-level=debug'
 
+.PHONY: dev
+dev:
+	@if [ -z "$(GEMINI_API_KEY)" ]; then echo "Error: GEMINI_API_KEY is not set"; exit 1; fi
+	@go run ./cmd/server/main.go
+
 .PHONY: bench
 bench:
 	@echo "Enter a name for the benchmark result file (without extension):"; \

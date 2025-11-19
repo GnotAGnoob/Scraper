@@ -1,0 +1,115 @@
+:root {
+  --bg-color: #f0f0f0;
+  --card-bg: #fff;
+  --primary: #ff90e8; /* Pink */
+  --secondary: #ffc900; /* Yellow */
+  --accent: #23a094; /* Teal */
+  --border: 3px solid #000;
+  --shadow: 4px 4px 0px #000;
+}
+
+body {
+  background-color: var(--bg-color);
+  font-family: 'Courier New', Courier, monospace;
+  color: #000;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
+  text-shadow: 4px 4px 0px var(--secondary);
+}
+
+.input-area {
+  border: var(--border);
+  box-shadow: var(--shadow);
+  background: var(--card-bg);
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+textarea {
+  width: 100%;
+  height: 200px;
+  border: var(--border);
+  font-family: inherit;
+  font-size: 1.2rem;
+  padding: 1rem;
+  box-sizing: border-box;
+  resize: vertical;
+  background-color: #fff;
+}
+
+button {
+  background-color: var(--primary);
+  border: var(--border);
+  box-shadow: var(--shadow);
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.card {
+  border: var(--border);
+  box-shadow: var(--shadow);
+  background: var(--card-bg);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card.not-found {
+  background-color: #ffcccc;
+}
+
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  border-bottom: var(--border);
+  margin-bottom: 1rem;
+}
+
+.card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background-color: var(--secondary);
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border: 2px solid #000;
+}
+
