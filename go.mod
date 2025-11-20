@@ -3,7 +3,10 @@ module github.com/GnotAGnoob/kosik-scraper
 go 1.24.0
 
 require (
+	github.com/go-chi/chi/v5 v5.2.3
+	github.com/go-chi/cors v1.2.2
 	github.com/jedib0t/go-pretty/v6 v6.6.1
+	github.com/joho/godotenv v1.5.1
 	github.com/rs/zerolog v1.33.0
 	github.com/schollz/progressbar/v3 v3.17.0
 	golang.org/x/term v0.36.0
