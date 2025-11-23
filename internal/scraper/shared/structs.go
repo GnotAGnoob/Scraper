@@ -2,19 +2,17 @@ package shared
 
 import (
 	"net/url"
-
-	"github.com/GnotAGnoob/kosik-scraper/internal/utils/structs"
 )
 
 type Nutrition struct {
-	Calories     structs.ScrapeResult[*float64]
-	Protein      structs.ScrapeResult[*float64]
-	Fat          structs.ScrapeResult[*float64]
-	SaturatedFat structs.ScrapeResult[*float64]
-	Carbs        structs.ScrapeResult[*float64]
-	Sugar        structs.ScrapeResult[*float64]
-	Fiber        structs.ScrapeResult[*float64]
-	Ingredients  structs.ScrapeResult[*string]
+	Calories     ScrapeResult[*float64]
+	Protein      ScrapeResult[*float64]
+	Fat          ScrapeResult[*float64]
+	SaturatedFat ScrapeResult[*float64]
+	Carbs        ScrapeResult[*float64]
+	Sugar        ScrapeResult[*float64]
+	Fiber        ScrapeResult[*float64]
+	Ingredients  ScrapeResult[*string]
 }
 
 type PricePerUnit struct {
@@ -23,21 +21,27 @@ type PricePerUnit struct {
 }
 
 type Product struct {
-	Name         structs.ScrapeResult[string]
-	Price        structs.ScrapeResult[float64]
-	Unit         structs.ScrapeResult[string]
-	PricePerUnit structs.ScrapeResult[PricePerUnit]
-	Link         structs.ScrapeResult[*url.URL]
-	ImageUrl     structs.ScrapeResult[*url.URL]
-	IsSoldOut    structs.ScrapeResult[bool]
-	Nutrition    structs.ScrapeResult[*Nutrition]
+	Name         ScrapeResult[string]
+	Price        ScrapeResult[float64]
+	Currency     ScrapeResult[string]
+	Unit         ScrapeResult[string]
+	PricePerUnit ScrapeResult[PricePerUnit]
+	Link         ScrapeResult[*url.URL]
+	ImageUrl     ScrapeResult[*url.URL]
+	IsSoldOut    ScrapeResult[bool]
+	Nutrition    ScrapeResult[*Nutrition]
 }
 
 type ReturnProduct struct {
-	structs.ScrapeResult[*Product]
+	ScrapeResult[*Product]
 }
 
 type ProductResult struct {
 	Index  int
 	Result *ReturnProduct
+}
+
+type ScrapeResult[T any] struct {
+	Value     T
+	ScrapeErr error
 }

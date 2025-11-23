@@ -1,6 +1,7 @@
 package httpUtils
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -9,8 +10,8 @@ import (
 // https://www.useragentlist.net/
 const UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.35"
 
-func SendRequest[T any](client *http.Client, method string, url string, body io.Reader) (t T, err error) {
-	req, err := http.NewRequest(method, url, body)
+func SendRequest[T any](ctx context.Context, client *http.Client, method string, url string, body io.Reader) (t T, err error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return t, err
 	}
@@ -27,12 +28,7 @@ func SendRequest[T any](client *http.Client, method string, url string, body io.
 		defer res.Body.Close()
 	}
 
-	resBody, err := io.ReadAll(res.Body)
-	if err != nil {
-		return t, err
-	}
-
-	err = json.Unmarshal(resBody, &t)
+	err = json.NewDecoder(res.Body).Decode(&t)
 	if err != nil {
 		return t, err
 	}

@@ -25,3 +25,6 @@ go.work.sum
 benchmark
 
 .cursor
+
+# environment files
+.env

@@ -24,6 +24,10 @@ Make sure you have the following installed:
 
 There are predefined commands using makefile, you can use them to build and run the project. If you don't have `make` installed, you can run the commands manually.
 
+#### Environment
+
+Copy `.env.example` to `.env` which describes the variables that are needed. The server refuses to boot if `.env` is missing.
+
 #### Console view
 
 ##### Build the project
@@ -41,6 +45,14 @@ make con
 ```bash
 make con-debug
 ```
+
+#### API server
+
+```bash
+make server
+```
+
+Pass overrides via flags, e.g. `make server ARGS="-port=9090 -log-level=debug"`.
 
 #### Benchmark
 

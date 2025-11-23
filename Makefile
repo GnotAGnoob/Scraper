@@ -6,6 +6,18 @@ con: ./cmd/console/main.go
 con-debug:
 	@$(MAKE) con ARGS='-log-level=debug'
 
+.PHONY: server
+server: ./cmd/server/main.go
+	@go run ./cmd/server $(ARGS)
+
+.PHONY: server-debug
+server-debug:
+	@$(MAKE) server ARGS='-log-level=debug'
+
+.PHONY: frontend
+frontend:
+	@echo "frontend app not initialized yet. run bun dev once ready."
+
 .PHONY: bench
 bench:
 	@echo "Enter a name for the benchmark result file (without extension):"; \
