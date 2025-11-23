@@ -6,8 +6,12 @@ con: ./cmd/console/main.go
 con-debug:
 	@$(MAKE) con ARGS='-log-level=debug'
 
+.PHONY: swagger
+swagger:
+	@cd ./cmd/server && swag init -g main.go -o ../../docs --parseDependency --parseInternal
+
 .PHONY: server
-server: ./cmd/server/main.go
+server: swagger ./cmd/server/main.go
 	@go run ./cmd/server $(ARGS)
 
 .PHONY: server-debug

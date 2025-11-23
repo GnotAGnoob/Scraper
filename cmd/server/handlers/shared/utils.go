@@ -10,7 +10,8 @@ import (
 	"github.com/GnotAGnoob/kosik-scraper/internal/orchestrator"
 )
 
-type errorResponse struct {
+// ErrorResponse describes a serialized error payload.
+type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
@@ -20,7 +21,7 @@ func JSON(w http.ResponseWriter, r *http.Request, status int, payload any) {
 }
 
 func Error(w http.ResponseWriter, r *http.Request, status int, message string) {
-	JSON(w, r, status, errorResponse{Error: message})
+	JSON(w, r, status, ErrorResponse{Error: message})
 }
 
 func OrchestratorError(w http.ResponseWriter, r *http.Request, err error) {

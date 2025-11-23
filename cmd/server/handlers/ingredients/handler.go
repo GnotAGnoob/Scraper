@@ -20,6 +20,17 @@ type response struct {
 
 const maxRequestBodySize = 10 * 1024 * 1024 // 10MB
 
+// TextProductsHandler godoc
+// @Summary Convert text into scraped products shop suggestions
+// @Description The LLM extracts ingredients which are matched against shop products.
+// @Tags Text
+// @Accept json
+// @Produce json
+// @Param request body request true "Text payload"
+// @Success 200 {object} response
+// @Failure 400 {object} shared.ErrorResponse
+// @Failure 500 {object} shared.ErrorResponse
+// @Router /api/v1/text/products [post]
 func TextProductsHandler(orch *orchestrator.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := applogger.LoggerFromContext(r.Context())

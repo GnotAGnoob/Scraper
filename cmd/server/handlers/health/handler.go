@@ -14,6 +14,13 @@ type response struct {
 	Time   string `json:"time"`
 }
 
+// HealthHandler godoc
+// @Summary Health probe
+// @Description Returns the server environment and current UTC timestamp.
+// @Tags Health
+// @Produce json
+// @Success 200 {object} response
+// @Router /health [get]
 func HealthHandler(cfg *serverconfig.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		shared.JSON(w, r, http.StatusOK, response{

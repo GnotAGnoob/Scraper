@@ -4,10 +4,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	healthhandler "github.com/GnotAGnoob/kosik-scraper/cmd/server/handlers/health"
 	ingredientshandler "github.com/GnotAGnoob/kosik-scraper/cmd/server/handlers/ingredients"
-	swaggerhandler "github.com/GnotAGnoob/kosik-scraper/cmd/server/handlers/swagger"
 	servermiddleware "github.com/GnotAGnoob/kosik-scraper/cmd/server/middleware"
 )
 
@@ -30,7 +30,7 @@ func (s *server) buildRouter() chi.Router {
 		api.Post("/text/products", ingredientshandler.TextProductsHandler(s.orchestrator))
 	})
 
-	r.Get("/swagger/*", swaggerhandler.SwaggerHandler())
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	return r
 }
