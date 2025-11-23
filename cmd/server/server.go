@@ -2,33 +2,44 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
-	"github.com/rs/zerolog/log"
 
-	"github.com/GnotAGnoob/kosik-scraper/internal/config"
+	serverconfig "github.com/GnotAGnoob/kosik-scraper/cmd/server/config"
+	applogger "github.com/GnotAGnoob/kosik-scraper/internal/logger"
+	"github.com/GnotAGnoob/kosik-scraper/internal/orchestrator"
 )
 
-type Server struct {
-	cfg    *config.Config
-	router chi.Router
+type server struct {
+	cfg          *serverconfig.Config
+	orchestrator *orchestrator.Service
+	router       chi.Router
 }
 
-func NewServer(cfg *config.Config) *Server {
-	s := &Server{cfg: cfg}
+func NewServer(ctx context.Context, cfg *serverconfig.Config) (*server, error) {
+	orch, err := orchestrator.NewService(ctx, cfg.Config)
+	logger := applogger.LoggerFromContext(ctx)
+	if err != nil {
+		logger.Error().Err(err).Msg("orchestrator initialization failed")
+		return nil, err
+	}
+	logger.Info().Msg("orchestrator initialized")
+
+	s := &server{
+		cfg:          cfg,
+		orchestrator: orch,
+	}
 	s.router = s.buildRouter()
-	return s
+	logger.Info().Msg("router built")
+	return s, nil
 }
 
-func (s *Server) Run(ctx context.Context) error {
+func (s *server) Run(ctx context.Context) error {
+	logger := applogger.LoggerFromContext(ctx)
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", s.cfg.HTTPPort),
 		Handler: s.router,
@@ -36,7 +47,8 @@ func (s *Server) Run(ctx context.Context) error {
 
 	serverErr := make(chan error, 1)
 	go func() {
-		log.Info().Int("port", s.cfg.HTTPPort).Msg("server starting")
+		logger.Info().Str("address", httpServer.Addr).Int("port", s.cfg.HTTPPort).Msg("server starting")
+
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- err
 			return
@@ -46,101 +58,20 @@ func (s *Server) Run(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), s.cfg.ShutdownTimeout)
+		const shutdownTimeout = 10 * time.Second
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 		defer cancel()
-		log.Info().Msg("server shutting down")
+		logger.Info().Dur("timeout", shutdownTimeout).Msg("server shutting down")
+
 		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error().Err(err).Msg("server shutdown failed")
 			return err
 		}
+
+		logger.Info().Msg("server shutdown complete")
 		return nil
 	case err := <-serverErr:
+		logger.Error().Err(err).Msg("server error")
 		return err
-	}
-}
-
-func (s *Server) buildRouter() chi.Router {
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   s.cfg.AllowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders:   s.cfg.AllowedHeaders,
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
-
-	r.Get("/healthz", s.handleHealth())
-	r.Route("/api/v1", func(api chi.Router) {
-		api.Post("/recipe", s.handleRecipe())
-	})
-
-	r.Get("/swagger/*", s.handleSwaggerPlaceholder())
-
-	return r
-}
-
-func (s *Server) handleHealth() http.HandlerFunc {
-	type healthResponse struct {
-		Status string `json:"status"`
-		Env    string `json:"env"`
-		Time   string `json:"time"`
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		respondJSON(w, http.StatusOK, healthResponse{
-			Status: "ok",
-			Env:    s.cfg.Env,
-			Time:   time.Now().UTC().Format(time.RFC3339),
-		})
-	}
-}
-
-func (s *Server) handleRecipe() http.HandlerFunc {
-	type recipeRequest struct {
-		Text string `json:"text"`
-	}
-
-	type recipeResponse struct {
-		Message string `json:"message"`
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		var req recipeRequest
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid JSON body"})
-			return
-		}
-
-		if strings.TrimSpace(req.Text) == "" {
-			respondJSON(w, http.StatusBadRequest, map[string]string{"error": "text is required"})
-			return
-		}
-
-		respondJSON(w, http.StatusNotImplemented, recipeResponse{
-			Message: "recipe endpoint wiring in progress",
-		})
-	}
-}
-
-func (s *Server) handleSwaggerPlaceholder() http.HandlerFunc {
-	type placeholder struct {
-		Message string `json:"message"`
-	}
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		respondJSON(w, http.StatusNotImplemented, placeholder{
-			Message: "swagger docs coming soon. generate via `swag init` once handlers annotated",
-		})
-	}
-}
-
-func respondJSON(w http.ResponseWriter, status int, payload any) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(payload); err != nil {
-		log.Error().Err(err).Msg("write JSON response")
 	}
 }

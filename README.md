@@ -26,7 +26,7 @@ There are predefined commands using makefile, you can use them to build and run 
 
 #### Environment
 
-Copy `.env.example` to `.env`, drop in your Gemini creds, and tweak values as needed. The server refuses to boot if `.env` is missing so you get instant feedback.
+Copy `.env.example` to `.env` which describes the variables that are needed. The server refuses to boot if `.env` is missing.
 
 #### Console view
 

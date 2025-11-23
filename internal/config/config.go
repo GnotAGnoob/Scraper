@@ -1,75 +1,86 @@
 package config
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
+
+	"slices"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	Env             string
-	LogLevel        string
-	HTTPPort        int
-	AllowedOrigins  []string
-	AllowedHeaders  []string
-	ShutdownTimeout time.Duration
+	Env         string
+	LogLevel    string
+	LLMProvider string
+	LLMAPIKey   string
+	LLMModel    string
 }
 
+var allowedLLMProviders = map[string][]string{
+	"google": {
+		"gemini-2.5-flash",
+	},
+}
+
+const (
+	defaultProvider = "google"
+	defaultModel    = "gemini-2.5-flash"
+)
+
 func Load() (*Config, error) {
-	if err := ensureEnvFile(".env"); err != nil {
+	if err := EnsureEnv(); err != nil {
 		return nil, err
 	}
 
-	if err := godotenv.Load(".env"); err != nil {
-		return nil, fmt.Errorf("load .env: %w", err)
-	}
-
-	defaultEnv := getEnv("APP_ENV", "development")
-	defaultPort := getEnvAsInt("SERVER_PORT", 8080)
-	defaultLogLevel := getEnv("LOG_LEVEL", "info")
-	defaultOrigins := getEnv("SERVER_ALLOWED_ORIGINS", "http://localhost:5173")
-	defaultHeaders := getEnv("SERVER_ALLOWED_HEADERS", "Accept,Content-Type")
-	defaultShutdown := getEnvAsDuration("SERVER_SHUTDOWN_TIMEOUT", 5*time.Second)
+	defaultEnv := GetEnv("APP_ENV", "development")
+	defaultLogLevel := GetEnv("LOG_LEVEL", "info")
+	defaultLLMProvider := GetEnv("LLM_PROVIDER", defaultProvider)
+	defaultLLMModel := GetEnv("LLM_MODEL", defaultModel)
+	defaultLLMAPIKey := GetEnv("LLM_API_KEY", "")
 
 	envFlag := flag.String("env", defaultEnv, "Runtime environment")
-	portFlag := flag.Int("port", defaultPort, "HTTP server port")
 	logLevel := flag.String("log-level", defaultLogLevel, "Log level (debug|info|warn|error)")
-	origins := flag.String("allowed-origins", defaultOrigins, "Comma-separated allowed origins")
-	headers := flag.String("allowed-headers", defaultHeaders, "Comma-separated allowed headers")
-	flag.Parse()
+	llmProvider := flag.String("llm-provider", defaultLLMProvider, "LLM provider")
+	llmModel := flag.String("llm-model", defaultLLMModel, "LLM model identifier")
+	llmAPIKey := flag.String("llm-api-key", defaultLLMAPIKey, "LLM API key")
+
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+
+	if *llmAPIKey == "" {
+		return nil, fmt.Errorf("LLM API key is required")
+	}
+
+	provider, model, err := normalizeLLM(*llmProvider, *llmModel)
+	if err != nil {
+		return nil, err
+	}
 
 	cfg := &Config{
-		Env:             *envFlag,
-		LogLevel:        *logLevel,
-		HTTPPort:        *portFlag,
-		AllowedOrigins:  splitAndTrim(*origins),
-		AllowedHeaders:  splitAndTrim(*headers),
-		ShutdownTimeout: defaultShutdown,
+		Env:         strings.TrimSpace(*envFlag),
+		LogLevel:    strings.TrimSpace(*logLevel),
+		LLMProvider: provider,
+		LLMAPIKey:   *llmAPIKey,
+		LLMModel:    model,
 	}
 
 	return cfg, nil
 }
 
-func ensureEnvFile(path string) error {
-	if _, err := os.Stat(path); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf(".env file missing. create %s (see README for template)", filepath.Base(path))
-		}
-
-		return err
+func EnsureEnv() error {
+	if err := godotenv.Load(".env"); err != nil {
+		return fmt.Errorf("load .env: %w", err)
 	}
 
 	return nil
 }
 
-func getEnv(key, fallback string) string {
+func GetEnv(key, fallback string) string {
 	if value := strings.TrimSpace(os.Getenv(key)); value != "" {
 		return value
 	}
@@ -77,13 +88,13 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func getEnvAsInt(key string, fallback int) int {
-	val := strings.TrimSpace(os.Getenv(key))
-	if val == "" {
+func GetEnvAsInt(key string, fallback int) int {
+	value := GetEnv(key, "")
+	if value == "" {
 		return fallback
 	}
 
-	parsed, err := strconv.Atoi(val)
+	parsed, err := strconv.Atoi(value)
 	if err != nil {
 		return fallback
 	}
@@ -91,30 +102,17 @@ func getEnvAsInt(key string, fallback int) int {
 	return parsed
 }
 
-func getEnvAsDuration(key string, fallback time.Duration) time.Duration {
-	val := strings.TrimSpace(os.Getenv(key))
-	if val == "" {
-		return fallback
+func normalizeLLM(provider, model string) (normalizedProvider, normalizedModel string, err error) {
+	normalizedProvider = strings.ToLower(strings.TrimSpace(provider))
+	allowedModels, ok := allowedLLMProviders[normalizedProvider]
+	if !ok {
+		return "", "", fmt.Errorf("unsupported LLM provider %q", provider)
 	}
 
-	parsed, err := time.ParseDuration(val)
-	if err != nil {
-		return fallback
+	normalizedModel = strings.ToLower(strings.TrimSpace(model))
+	if !slices.Contains(allowedModels, normalizedModel) {
+		return "", "", fmt.Errorf("unsupported model %q for provider %q", model, provider)
 	}
 
-	return parsed
-}
-
-func splitAndTrim(input string) []string {
-	parts := strings.Split(input, ",")
-	result := make([]string, 0, len(parts))
-
-	for _, part := range parts {
-		trimmed := strings.TrimSpace(part)
-		if trimmed != "" {
-			result = append(result, trimmed)
-		}
-	}
-
-	return result
+	return
 }

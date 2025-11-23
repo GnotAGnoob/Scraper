@@ -2,5 +2,5 @@ package shared
 
 import "time"
 
-// timeouts
-const RequestTimeout = time.Second * 5
+// RequestTimeout is the default HTTP client timeout for scraper requests.
+const RequestTimeout = 5 * time.Second

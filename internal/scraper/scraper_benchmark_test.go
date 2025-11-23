@@ -1,6 +1,7 @@
 package scraper_test
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -27,11 +28,12 @@ func openSearchAndCloseBrowser(searches ...string) {
 	for _, search := range searches {
 		totalChan := make(chan int)
 		productsChan := make(chan *scraperShared.ProductResult)
+		ctx := context.Background()
 
 		drainChan(totalChan)
 		drainChan(productsChan)
 
-		scraper.GetProducts(search, totalChan, productsChan)
+		_ = scraper.GetProducts(ctx, search, totalChan, productsChan)
 	}
 }
 

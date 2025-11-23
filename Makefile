@@ -10,6 +10,10 @@ con-debug:
 server: ./cmd/server/main.go
 	@go run ./cmd/server $(ARGS)
 
+.PHONY: server-debug
+server-debug:
+	@$(MAKE) server ARGS='-log-level=debug'
+
 .PHONY: frontend
 frontend:
 	@echo "frontend app not initialized yet. run bun dev once ready."

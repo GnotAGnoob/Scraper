@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"math"
@@ -47,13 +48,14 @@ func main() {
 		bar := getProgressBar("Scraping...", *logLevel == "debug")
 		totalChan := make(chan int)
 		productsChan := make(chan *scraperLibShared.ProductResult)
+		ctx := context.Background()
 
 		var err error
 		wg := sync.WaitGroup{}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = scraperLib.GetProducts(search, totalChan, productsChan)
+			err = scraperLib.GetProducts(ctx, search, totalChan, productsChan)
 		}()
 
 		total, ok := <-totalChan

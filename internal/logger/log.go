@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"os"
 	"time"
 
@@ -19,4 +20,12 @@ func Init(logLevel string) {
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
 
 	log.Logger = log.Output(output)
+}
+
+func LoggerFromContext(ctx context.Context) zerolog.Logger {
+	if logger := zerolog.Ctx(ctx); logger != nil {
+		return *logger
+	}
+
+	return log.Logger
 }
