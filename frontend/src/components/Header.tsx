@@ -1,67 +1,107 @@
+import { useCallback, useState } from 'react'
+
 import { Link } from '@tanstack/react-router'
+import { Home, Menu, Moon, Sun } from 'lucide-react'
 
-import { useState } from 'react'
-import { Home, Menu, X } from 'lucide-react'
-
-export default function Header() {
+const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [isDark, setIsDark] = useState(
+    typeof document !== 'undefined'
+      ? document.documentElement.classList.contains('dark')
+      : false,
+  )
+
+  const openMenu = useCallback(() => {
+    setIsOpen(true)
+  }, [])
+
+  const closeMenu = useCallback(() => {
+    setIsOpen(false)
+  }, [])
+
+  const toggleTheme = useCallback(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    const root = document.documentElement
+    root.classList.toggle('dark')
+    setIsDark(root.classList.contains('dark'))
+  }, [])
 
   return (
     <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
-        >
-          <Menu size={24} />
-        </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
-          </Link>
-        </h1>
-      </header>
-
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
+      <header className="flex items-center justify-between gap-4 border-b-2 border-border bg-secondary-background px-4 py-3 shadow-shadow">
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Close menu"
+            type="button"
+            onClick={openMenu}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--radius-base)] border-2 border-border bg-background text-foreground shadow-shadow transition-transform hover:-translate-y-[2px] hover:translate-x-[2px] hover:shadow-[5px_5px_0_0_var(--border)] md:hidden"
+            aria-label="Open menu"
           >
-            <X size={24} />
+            <Menu className="h-5 w-5" />
           </button>
-        </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
           <Link
             to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
+            className="inline-flex items-baseline gap-2 rounded-[var(--radius-base)] border-2 border-border bg-main px-3 py-1 font-heading text-sm uppercase tracking-wide shadow-shadow"
           >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
+            <Home className="h-4 w-4" />
+            <span>Kosik scraper</span>
           </Link>
+        </div>
 
-          {/* Demo Links Start */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="inline-flex items-center gap-2 rounded-[var(--radius-base)] border-2 border-border bg-background px-3 py-1 text-xs font-heading uppercase shadow-shadow transition-transform hover:-translate-y-[2px] hover:translate-x-[2px] hover:shadow-[5px_5px_0_0_var(--border)]"
+          aria-label="Toggle theme"
+        >
+          {isDark ? (
+            <>
+              <Sun className="h-4 w-4 text-chart-1" />
+              Light
+            </>
+          ) : (
+            <>
+              <Moon className="h-4 w-4 text-chart-5" />
+              Dark
+            </>
+          )}
+        </button>
+      </header>
 
-          {/* Demo Links End */}
-        </nav>
-      </aside>
+      {isOpen ? (
+        <aside className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r-2 border-border bg-secondary-background p-4 shadow-shadow">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <span className="font-heading text-lg">Navigation</span>
+            <button
+              type="button"
+              onClick={closeMenu}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-[var(--radius-base)] border-2 border-border bg-background text-foreground shadow-shadow"
+            >
+              ✕
+            </button>
+          </div>
+
+          <nav className="flex flex-col gap-2 text-sm">
+            <Link
+              to="/"
+              onClick={closeMenu}
+              className="inline-flex items-center gap-2 rounded-[var(--radius-base)] border-2 border-border bg-background px-3 py-2 font-base shadow-shadow"
+              activeProps={{
+                className:
+                  'inline-flex items-center gap-2 rounded-[var(--radius-base)] border-2 border-border bg-main px-3 py-2 font-heading shadow-shadow',
+              }}
+            >
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
+          </nav>
+        </aside>
+      ) : null}
     </>
   )
 }
+
+export default Header
