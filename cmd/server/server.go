@@ -33,7 +33,7 @@ func NewServer(ctx context.Context, cfg *serverconfig.Config) (*server, error) {
 		orchestrator: orch,
 	}
 	s.router = s.buildRouter()
-	log.Info().Msg("router built")
+	log.Info().Msg("router initialized")
 	return s, nil
 }
 
