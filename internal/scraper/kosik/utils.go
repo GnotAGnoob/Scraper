@@ -25,7 +25,7 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 		return nil
 	}
 
-	linkUrl, err := urlParams.CreateProductUrl(productData.URL)
+	linkUrl, err := urlParams.CreatePublicProductUrl(productData.URL)
 	urlResult := shared.ScrapeResult[*url.URL]{Value: linkUrl, ScrapeErr: err}
 
 	imageUrl, err := url.Parse(productData.Image)

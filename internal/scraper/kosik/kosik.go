@@ -21,14 +21,14 @@ func scrapeProductAsync(ctx context.Context, index int, product *Product, client
 	defer func() {
 		ch <- productResult
 	}()
-	productLink := productResult.Result.Value.Link
+	apiLink, err := urlParams.CreateProductUrl(product.URL)
 
-	if productLink.ScrapeErr != nil {
+	if err != nil {
 		return
 	}
 
 	logger.Debug().Str("product", product.Name).Int("index", index).Msg("scraping nutritions")
-	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](ctx, client, http.MethodGet, productLink.Value.String(), nil)
+	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](ctx, client, http.MethodGet, apiLink.String(), nil)
 	if err != nil {
 		productResult.Result.Value.Nutrition.ScrapeErr = err
 		return
