@@ -19,7 +19,7 @@ func NewProvider(ctx context.Context, cfg *config.Config) *Provider {
 	return &Provider{cfg: cfg}
 }
 
-func generateAndParse[T any](ctx context.Context, cfg *config.Config, systemInstruction, userContent string, responseJsonSchema map[string]interface{}) (*T, error) {
+func generateAndParse[T any](ctx context.Context, cfg *config.Config, systemInstruction, userContent string, responseJsonSchema map[string]any) (*T, error) {
 	logger := applogger.LoggerFromContext(ctx)
 	result := new(T)
 

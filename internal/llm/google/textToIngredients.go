@@ -11,25 +11,25 @@ import (
 )
 
 const (
-	ingredientsPrompt = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish."
+	ingredientsPrompt = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish. the input might be in any language, translate it to Czech."
 	promptDirectives  = "Return ONLY valid JSON. No prose, no code fences. Convert units to grams. If you must guess, be conservative. Include the original ingredient wording in `originalText`."
 )
 
-var responseJsonSchema = map[string]interface{}{
+var responseJsonSchema = map[string]any{
 	"type": "object",
-	"properties": map[string]interface{}{
-		"ingredients": map[string]interface{}{
+	"properties": map[string]any{
+		"ingredients": map[string]any{
 			"type": "array",
-			"items": map[string]interface{}{
+			"items": map[string]any{
 				"type": "object",
-				"properties": map[string]interface{}{
-					"name": map[string]interface{}{
+				"properties": map[string]any{
+					"name": map[string]any{
 						"type": "string",
 					},
-					"quantityGrams": map[string]interface{}{
+					"quantityGrams": map[string]any{
 						"type": "number",
 					},
-					"originalText": map[string]interface{}{
+					"originalText": map[string]any{
 						"type": "string",
 					},
 				},

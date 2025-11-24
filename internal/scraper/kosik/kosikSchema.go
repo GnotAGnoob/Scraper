@@ -30,7 +30,7 @@ type Product struct {
 	// UnitStep                    float64           `json:"unitStep"`
 	// VendorID                    int               `json:"vendorId"`
 	// PharmacyCertificate         *string           `json:"pharmacyCertificate"`
-	// ProductGroups               []interface{}     `json:"productGroups"`
+	// ProductGroups               []any     `json:"productGroups"`
 	// RecommendedSellPrice        float64           `json:"recommendedSellPrice"`
 	// Detail                      *string           `json:"detail"`
 	// HasAssociatedProducts       bool              `json:"hasAssociatedProducts"`
@@ -185,7 +185,7 @@ type products struct {
 // type otherProducts struct {
 // 	ProductCount              int           `json:"productCount"`
 // 	VendorID                  int           `json:"vendorId"`
-// 	NonRegulatedPharmacyProducts []interface{} `json:"nonRegulatedPharmacyProducts"`
+// 	NonRegulatedPharmacyProducts []any `json:"nonRegulatedPharmacyProducts"`
 // 	MaximumReached            bool          `json:"maximumReached"`
 // }
 
@@ -198,7 +198,7 @@ type products struct {
 
 type SearchResponse struct {
 	// Display       string      `json:"display"`
-	// ProductGroups []interface{} `json:"productGroups"`
+	// ProductGroups []any `json:"productGroups"`
 	Products products `json:"products"`
 	// Title         string      `json:"title"`
 	// DescriptionBefore *string `json:"descriptionBefore"`
@@ -206,14 +206,14 @@ type SearchResponse struct {
 	// URL           string      `json:"url"`
 	// Breadcrumbs   []Breadcrumb `json:"breadcrumbs"`
 	// SubCategories []SubCategory `json:"subCategories"`
-	// Widgets       []interface{} `json:"widgets"`
-	// Banners       []interface{} `json:"banners"`
+	// Widgets       []any `json:"widgets"`
+	// Banners       []any `json:"banners"`
 	// Filters       []Filter    `json:"filters"`
 	// OrderBy       []OrderBy   `json:"orderBy"`
 	// ShowProductsCount bool    `json:"showProductsCount"`
 	// TotalCount    int         `json:"totalCount"`
 	// VendorID      int         `json:"vendorId"`
-	// PharmacyCertificates []interface{} `json:"pharmacyCertificates"`
+	// PharmacyCertificates []any `json:"pharmacyCertificates"`
 	// OtherProducts OtherProducts `json:"otherProducts"`
 	// LongName      *string     `json:"longName"`
 	// ShortDescription *string  `json:"shortDescription"`
@@ -222,7 +222,7 @@ type SearchResponse struct {
 
 type SearchMoreResponse struct {
 	// Cursor     string    `json:"cursor"`
-	// PharmacyCertificates []interface{} `json:"pharmacyCertificates"`
+	// PharmacyCertificates []any `json:"pharmacyCertificates"`
 	Products []Product `json:"products"`
 }
 
@@ -232,5 +232,5 @@ type ProductDetailResponse struct {
 	// ShoppingLists    []ShoppingList   `json:"shoppingLists"`
 	Product productWithDetail `json:"product"`
 	// CategoryTree     []Category       `json:"categoryTree"`
-	// ReturnableCarrier *interface{}    `json:"returnableCarrier"`
+	// ReturnableCarrier *any    `json:"returnableCarrier"`
 }
