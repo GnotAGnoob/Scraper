@@ -1,33 +1,16 @@
 {
 	"$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
 	"vcs": {
-		"enabled": false,
+		"enabled": true,
 		"clientKind": "git",
-		"useIgnoreFile": false
+		"useIgnoreFile": true
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**/*"],
-		"excludes": [
-			"**/.DS_Store",
-			"**/node_modules/**",
-			"**/build/**",
-			"**/.svelte-kit/**",
-			"**/package/**",
-			"**/.env",
-			"**/.env.local",
-			"**/.env.development",
-			"**/.env.production",
-			"**/.env.test",
-			"**/.env.ci",
-			"**/.cursor/**",
-			"**/pnpm-lock.yaml",
-			"**/package-lock.json",
-			"**/yarn.lock",
-			"drizzle/meta/**",
-			"**/src/routeTree.gen.ts",
-			"**/src/styles.css"
-		]
+		"includes": [
+			"**/*"
+		],
+		"excludes": []
 	},
 	"formatter": {
 		"enabled": true,
@@ -36,7 +19,13 @@
 		"lineWidth": 120,
 		"trailingCommas": "all"
 	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	},
 	"linter": {
 		"enabled": true,
 		"rules": {
