@@ -1,4 +1,6 @@
-package llm
+package shared
+
+import "context"
 
 type Ingredient struct {
 	Name          string  `json:"name"`
@@ -6,6 +8,10 @@ type Ingredient struct {
 	OriginalText  string  `json:"originalText"`
 }
 
-type llmIngredientResult struct {
+type LLMIngredientResult struct {
 	Ingredients []Ingredient `json:"ingredients"`
+}
+
+type Provider interface {
+	TextToIngredients(ctx context.Context, text string) ([]Ingredient, error)
 }

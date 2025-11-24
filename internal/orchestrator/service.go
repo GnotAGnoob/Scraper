@@ -9,6 +9,7 @@ import (
 
 	"github.com/GnotAGnoob/kosik-scraper/internal/config"
 	"github.com/GnotAGnoob/kosik-scraper/internal/llm"
+	"github.com/GnotAGnoob/kosik-scraper/internal/llm/shared"
 	applogger "github.com/GnotAGnoob/kosik-scraper/internal/logger"
 	"github.com/GnotAGnoob/kosik-scraper/internal/scraper"
 	scraperLibShared "github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
@@ -65,7 +66,7 @@ func (s *Service) ProcessTextToProducts(ctx context.Context, text string) ([]Ing
 	return s.scrapeIngredients(ctx, ingredients)
 }
 
-func (s *Service) scrapeIngredients(ctx context.Context, ingredients []llm.Ingredient) ([]IngredientProducts, error) {
+func (s *Service) scrapeIngredients(ctx context.Context, ingredients []shared.Ingredient) ([]IngredientProducts, error) {
 	logger := applogger.LoggerFromContext(ctx)
 	if len(ingredients) == 0 {
 		logger.Warn().Msg("no ingredients provided")
@@ -107,7 +108,7 @@ func (s *Service) scrapeIngredients(ctx context.Context, ingredients []llm.Ingre
 	return ingredientsProducts, nil
 }
 
-func (s *Service) scrapeIngredient(ctx context.Context, ingredient llm.Ingredient) (IngredientProducts, error) {
+func (s *Service) scrapeIngredient(ctx context.Context, ingredient shared.Ingredient) (IngredientProducts, error) {
 	logger := applogger.LoggerFromContext(ctx)
 	name := strings.TrimSpace(ingredient.Name)
 

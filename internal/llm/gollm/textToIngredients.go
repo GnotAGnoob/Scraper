@@ -1,13 +1,14 @@
-package llm
+package gollm
 
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
+	"github.com/GnotAGnoob/kosik-scraper/internal/llm/shared"
+	applogger "github.com/GnotAGnoob/kosik-scraper/internal/logger"
 	"github.com/teilomillet/gollm"
-
-	"github.com/GnotAGnoob/kosik-scraper/internal/config"
 )
 
 const (
@@ -25,23 +26,26 @@ const (
 }`
 )
 
-func TextToIngredients(ctx context.Context, cfg *config.Config, text string) ([]Ingredient, error) {
-	trimmed := strings.TrimSpace(text)
-	if trimmed == "" {
+func (p *Provider) TextToIngredients(ctx context.Context, text string) ([]shared.Ingredient, error) {
+	logger := applogger.LoggerFromContext(ctx)
+	trimmedText := strings.TrimSpace(text)
+	if trimmedText == "" {
+		logger.Error().Msg("text is empty")
 		return nil, errors.New("text is empty")
 	}
 
 	prompt := gollm.NewPrompt(
 		ingredientsPrompt,
-		gollm.WithContext("Recipe:\n"+trimmed),
+		gollm.WithContext(trimmedText),
 		gollm.WithDirectives(promptDirectives),
 		gollm.WithOutput(promptOutputSchema),
 		gollm.WithMaxLength(1000),
 	)
 
-	result, err := generateAndParse[llmIngredientResult](ctx, cfg, prompt)
+	result, err := generateAndParse[shared.LLMIngredientResult](ctx, p.cfg, prompt)
 	if err != nil {
-		return nil, err
+		logger.Error().Err(err).Msg("failed to generate LLM response")
+		return nil, fmt.Errorf("failed to generate LLM response: %w", err)
 	}
 
 	return result.Ingredients, nil

@@ -1,7 +1,7 @@
 package orchestrator
 
 import (
-	llm "github.com/GnotAGnoob/kosik-scraper/internal/llm"
+	"github.com/GnotAGnoob/kosik-scraper/internal/llm/shared"
 	scraperLibShared "github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
 )
 
@@ -34,7 +34,7 @@ type productFields struct {
 }
 
 type IngredientProducts struct {
-	Ingredient llm.Ingredient   `json:"ingredient"`
-	Source     string           `json:"source"`
-	Products   []*productFields `json:"products"`
+	Ingredient shared.Ingredient `json:"ingredient"`
+	Source     string            `json:"source"`
+	Products   []*productFields  `json:"products"`
 }
