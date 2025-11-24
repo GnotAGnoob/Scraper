@@ -9,15 +9,13 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**/*"
-		],
-		"excludes": []
+		]
 	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab",
 		"indentWidth": 4,
-		"lineWidth": 120,
-		"trailingCommas": "all"
+		"lineWidth": 120
 	},
 	"assist": {
 		"actions": {
@@ -34,7 +32,8 @@
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double"
+			"quoteStyle": "double",
+			"trailingCommas": "all"
 		}
 	}
 }
