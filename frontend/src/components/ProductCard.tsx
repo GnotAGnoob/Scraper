@@ -15,7 +15,7 @@ const getFieldValue = <T,>(field: { value: T; error?: string }): T | null => {
 }
 
 const formatPrice = (price: number | null, currency: string | null): string => {
-  if (price === null) return 'N/A'
+  if (!price) return 'N/A'
   return `${price.toFixed(2)} ${currency || 'CZK'}`
 }
 
@@ -84,7 +84,7 @@ export const ProductCard = ({ product, ingredient }: ProductCardProps) => {
             </p>
             {pricePerUnit && (
               <p className="text-xs text-muted-foreground mt-1">
-                {pricePerUnit.value.toFixed(2)} {pricePerUnit.unit || 'CZK'} / {unit || 'unit'}
+                {pricePerUnit.value?.toFixed(2)} {pricePerUnit.unit || 'CZK'} / {unit || 'unit'}
               </p>
             )}
           </div>
