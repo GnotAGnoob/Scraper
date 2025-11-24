@@ -1,6 +1,16 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const normalizeBaseURL = (url: string): string => {
+  if (!url) return 'http://localhost:8080'
+  // If URL already has a protocol, return as is
+  if (/^https?:\/\//i.test(url)) return url
+  // Otherwise, prepend http://
+  return `http://${url}`
+}
+
+const API_BASE_URL = normalizeBaseURL(
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+)
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
