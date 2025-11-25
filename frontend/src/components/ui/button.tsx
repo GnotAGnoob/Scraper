@@ -1,39 +1,35 @@
-import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+
+import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-base)] border-2 border-border bg-main px-5 py-2 text-base font-semibold uppercase tracking-tight text-main-foreground shadow-[var(--shadow)] transition-all duration-150 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_var(--border)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/60 active:translate-x-0 active:translate-y-0 active:shadow-[var(--shadow)]",
-	{
-		variants: {
-			variant: {
-				default: "bg-main text-main-foreground",
-				destructive:
-					"bg-red-500 text-white hover:bg-red-500/90 focus-visible:ring-red-500/30",
-				outline:
-					"bg-secondary-background text-foreground hover:bg-main hover:text-main-foreground",
-				secondary:
-					"bg-foreground text-background hover:bg-foreground/90 hover:text-background",
-				ghost:
-					"bg-transparent text-foreground hover:bg-secondary-background",
-				link: "bg-transparent text-foreground underline-offset-4 hover:underline",
-			},
-			size: {
-				default: "px-5 py-2",
-				sm: "px-4 py-1.5 text-sm",
-				lg: "px-8 py-3 text-lg",
-				icon: "size-10",
-				"icon-sm": "size-8",
-				"icon-lg": "size-12",
-			},
-		},
-		defaultVariants: {
-			variant: "default",
-			size: "default",
-		},
-	}
+  "inline-flex items-center justify-center whitespace-nowrap rounded-base text-sm font-base ring-offset-white transition-all gap-2 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  {
+    variants: {
+      variant: {
+        default:
+          "text-main-foreground bg-main border-2 border-border shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none",
+        noShadow: "text-main-foreground bg-main border-2 border-border",
+        neutral:
+          "bg-secondary-background text-foreground border-2 border-border shadow-shadow hover:translate-x-boxShadowX hover:translate-y-boxShadowY hover:shadow-none",
+        reverse:
+          "text-main-foreground bg-main border-2 border-border hover:translate-x-reverseBoxShadowX hover:translate-y-reverseBoxShadowY hover:shadow-shadow",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 px-3",
+        lg: "h-11 px-8",
+        icon: "size-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
 )
 
 function Button({

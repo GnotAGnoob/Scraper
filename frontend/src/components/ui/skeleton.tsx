@@ -1,12 +1,11 @@
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
 
-type SkeletonProps = React.HTMLAttributes<HTMLDivElement>
-
-const Skeleton = ({ className, ...props }: SkeletonProps) => {
+function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
+      data-slot="skeleton"
       className={cn(
-        'animate-pulse rounded-[var(--radius-base)] border-2 border-border bg-secondary-background shadow-[var(--shadow)]',
+        "animate-pulse rounded-base bg-secondary-background border-2 border-border",
         className,
       )}
       {...props}
@@ -15,5 +14,3 @@ const Skeleton = ({ className, ...props }: SkeletonProps) => {
 }
 
 export { Skeleton }
-
-

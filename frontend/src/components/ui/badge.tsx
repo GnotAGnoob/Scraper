@@ -1,35 +1,43 @@
-import * as React from 'react'
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { cn } from '@/lib/utils'
+import * as React from "react"
 
-const badgeVariants = {
-  default:
-    'bg-main text-main-foreground border-2 border-border shadow-[var(--shadow)]',
-  outline: 'bg-secondary-background text-foreground border-2 border-border',
-  subtle: 'bg-foreground text-background border-2 border-border',
-}
+import { cn } from "@/lib/utils"
 
-type Variant = keyof typeof badgeVariants
+const badgeVariants = cva(
+  "inline-flex items-center justify-center rounded-base border-2 border-border px-2.5 py-0.5 text-xs font-base w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] overflow-hidden",
+  {
+    variants: {
+      variant: {
+        default: "bg-main text-main-foreground",
+        neutral: "bg-secondary-background text-foreground",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+)
 
-type BadgeProps = React.HTMLAttributes<HTMLDivElement> & {
-  variant?: Variant
-}
+function Badge({
+  className,
+  variant,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"span"> &
+  VariantProps<typeof badgeVariants> & {
+    asChild?: boolean
+  }) {
+  const Comp = asChild ? Slot : "span"
 
-const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, variant = 'default', ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        'inline-flex items-center rounded-[var(--radius-base)] px-3 py-1 text-xs font-semibold uppercase tracking-wide',
-        badgeVariants[variant],
-        className,
-      )}
+  return (
+    <Comp
+      data-slot="badge"
+      className={cn(badgeVariants({ variant }), className)}
       {...props}
     />
-  ),
-)
-Badge.displayName = 'Badge'
+  )
+}
 
-export { Badge }
-
-
+export { Badge, badgeVariants }
