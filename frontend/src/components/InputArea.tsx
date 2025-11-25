@@ -7,7 +7,7 @@ interface InputAreaProps {
 	disabled?: boolean;
 }
 
-export function InputArea({ value, onChange, placeholder, disabled }: InputAreaProps) {
+export const InputArea = ({ value, onChange, placeholder, disabled }: InputAreaProps) => {
 	return (
 		<div className="w-full">
 			<Textarea
