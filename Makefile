@@ -20,7 +20,15 @@ server-debug:
 
 .PHONY: frontend
 frontend:
-	@echo "frontend app not initialized yet. run bun dev once ready."
+	@cd frontend && bun run dev
+
+.PHONY: frontend-build
+frontend-build:
+	@cd frontend && bun run build
+
+.PHONY: frontend-install
+frontend-install:
+	@cd frontend && bun install
 
 .PHONY: bench
 bench:

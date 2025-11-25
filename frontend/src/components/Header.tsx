@@ -1,67 +1,47 @@
 import { Link } from '@tanstack/react-router'
-
-import { useState } from 'react'
-import { Home, Menu, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { ChefHat, Moon, Sun } from 'lucide-react'
 
 export default function Header() {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isDark, setIsDark] = useState(false)
+
+  useEffect(() => {
+    const stored = localStorage.getItem('theme')
+    const isDarkMode = stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    setIsDark(isDarkMode)
+    document.documentElement.classList.toggle('dark', isDarkMode)
+  }, [])
+
+  const toggleTheme = useCallback(() => {
+    const newIsDark = !isDark
+    setIsDark(newIsDark)
+    document.documentElement.classList.toggle('dark', newIsDark)
+    localStorage.setItem('theme', newIsDark ? 'dark' : 'light')
+  }, [isDark])
 
   return (
-    <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-          aria-label="Open menu"
+    <header className="border-b-4 border-border bg-secondary-background shadow-[var(--shadow)]">
+      <div className="container mx-auto flex items-center justify-between p-4">
+        <Link
+          to="/"
+          className="flex items-center gap-3 transition-transform hover:scale-105"
         >
-          <Menu size={24} />
+          <div className="rounded-[--radius-base] border-4 border-border bg-main p-2 shadow-[var(--shadow)]">
+            <ChefHat className="h-8 w-8 text-main-foreground" />
+          </div>
+          <h1 className="text-2xl font-heading">
+            Recipe to Kosik
+          </h1>
+        </Link>
+
+        <button
+          onClick={toggleTheme}
+          className="rounded-[--radius-base] border-4 border-border bg-foreground p-3 text-background shadow-[var(--shadow)] transition-all hover:shadow-[6px_6px_0px_0px_var(--border)] hover:translate-x-[-2px] hover:translate-y-[-2px]"
+          aria-label="Toggle theme"
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
-        <h1 className="ml-4 text-xl font-semibold">
-          <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
-          </Link>
-        </h1>
-      </header>
-
-      <aside
-        className={`fixed top-0 left-0 h-full w-80 bg-gray-900 text-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
-          </Link>
-
-          {/* Demo Links Start */}
-
-          {/* Demo Links End */}
-        </nav>
-      </aside>
-    </>
+      </div>
+    </header>
   )
 }
