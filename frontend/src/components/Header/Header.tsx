@@ -10,11 +10,11 @@ const Header = () => {
 
 	return (
 		<>
-			<header className="p-4 flex items-center bg-secondary-background border-b-4 border-border shadow-[4px_4px_0px_0px_var(--border)] relative z-50">
+			<header className="relative z-50 flex items-center border-border border-b-4 bg-secondary-background p-4 shadow-[4px_4px_0px_0px_var(--border)]">
 				<Button variant="neutral" size="icon" onClick={() => setIsOpen(true)} aria-label="Open menu">
 					<Menu size={24} />
 				</Button>
-				<h1 className="ml-4 text-2xl font-black italic tracking-tighter">
+				<h1 className="ml-4 font-black text-2xl italic tracking-tighter">
 					<Link to="/">
 						SCRAPE<span className="text-chart-1">MONKEY</span>
 					</Link>

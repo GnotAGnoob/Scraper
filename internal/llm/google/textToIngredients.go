@@ -12,7 +12,7 @@ import (
 
 const (
 	ingredientsPrompt = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish. the input might be in any language, translate it to Czech."
-	promptDirectives  = "Return ONLY valid JSON. No prose, no code fences. Convert units to grams. If you must guess, be conservative. Include the original ingredient wording in `originalText`."
+	promptDirectives  = "Return ONLY valid JSON. No prose, no code fences. Convert units to grams. If you must guess, be conservative."
 )
 
 var responseJsonSchema = map[string]any{
@@ -29,11 +29,8 @@ var responseJsonSchema = map[string]any{
 					"quantityGrams": map[string]any{
 						"type": "number",
 					},
-					"originalText": map[string]any{
-						"type": "string",
-					},
 				},
-				"required": []string{"name", "quantityGrams", "originalText"},
+				"required": []string{"name", "quantityGrams"},
 			},
 		},
 	},

@@ -15,8 +15,8 @@ export const InputArea = ({ value, onChange, placeholder, disabled }: InputAreaP
 				onChange={(e) => onChange(e.target.value)}
 				placeholder={placeholder}
 				disabled={disabled}
-				className="min-h-[200px] text-lg p-4 border-2 border-border shadow-shadow focus-visible:ring-offset-2 font-mono"
+				className="min-h-[200px] p-4 font-mono text-lg"
 			/>
 		</div>
 	);
-}
+};

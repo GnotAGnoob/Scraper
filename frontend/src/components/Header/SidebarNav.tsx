@@ -6,9 +6,9 @@ interface SidebarNavProps {
 	onNavigate: () => void;
 }
 
-const routeIcons: Record<keyof FileRoutesByFullPath, LucideIcon> = {
+const routeIcons = {
 	"/": Home,
-};
+} as const satisfies Record<keyof FileRoutesByFullPath, LucideIcon>;
 
 const formatRouteName = (path: string): string => {
 	if (path === "/") return "HOME";
@@ -22,10 +22,10 @@ const formatRouteName = (path: string): string => {
 export const SidebarNav = ({ onNavigate }: SidebarNavProps) => {
 	const { routesByPath } = useRouter();
 	return (
-		<nav className="flex-1 p-4 overflow-y-auto space-y-2">
+		<nav className="flex-1 space-y-2 overflow-y-auto p-4">
 			{Object.keys(routesByPath).map((path) => {
 				const pathKey = path as keyof typeof routesByPath;
-				const Icon = routeIcons[pathKey] || Home;
+				const Icon = routeIcons[pathKey];
 				const routeName = formatRouteName(path);
 
 				return (
@@ -33,7 +33,7 @@ export const SidebarNav = ({ onNavigate }: SidebarNavProps) => {
 						key={pathKey}
 						to={path}
 						onClick={onNavigate}
-						className="flex items-center gap-3 p-3 rounded-none border-2 border-transparent hover:border-border hover:bg-chart-2 hover:shadow-[4px_4px_0px_0px_var(--border)] transition-all font-bold"
+						className="flex items-center gap-3 rounded-none border-2 border-transparent p-3 font-bold transition-all hover:border-border hover:bg-chart-2 hover:shadow-[4px_4px_0px_0px_var(--border)]"
 						activeProps={{
 							className:
 								"flex items-center gap-3 p-3 rounded-none border-2 border-border bg-chart-2 shadow-[4px_4px_0px_0px_var(--border)] font-bold",

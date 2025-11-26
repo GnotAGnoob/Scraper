@@ -23,6 +23,7 @@
 	--chart-5: #7a83ff;
 	--chart-active-dot: #000;
 	--radius: 5px;
+	--radius-lg: 10px;
 }
 
 .dark {
@@ -60,7 +61,6 @@
 	--color-chart-3: var(--chart-3);
 	--color-chart-4: var(--chart-4);
 	--color-chart-5: var(--chart-5);
-
 	--spacing-boxShadowX: 4px;
 	--spacing-boxShadowY: 4px;
 	--spacing-reverseBoxShadowX: -4px;

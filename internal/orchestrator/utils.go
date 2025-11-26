@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"net/url"
+	"strings"
 
 	scraperLibShared "github.com/GnotAGnoob/kosik-scraper/internal/scraper/shared"
 )
@@ -29,7 +30,7 @@ func mapProductFields(product *scraperLibShared.Product) *productFields {
 		Unit:         mapField(product.Unit),
 		PricePerUnit: mapField(product.PricePerUnit),
 		Link:         mapURLField(product.Link),
-		ImageURL:     mapURLField(product.ImageUrl),
+		ImageURL:     mapImageURLField(product.ImageUrl),
 		IsSoldOut:    mapField(product.IsSoldOut),
 	}
 
@@ -75,11 +76,30 @@ func mapURLField(result scraperLibShared.ScrapeResult[*url.URL]) fieldResult[*st
 	}
 }
 
+func mapImageURLField(result scraperLibShared.ScrapeResult[*url.URL]) fieldResult[*string] {
+	return fieldResult[*string]{
+		Value: imageURLToStringPtr(result.Value),
+		Error: errorString(result.ScrapeErr),
+	}
+}
+
 func urlToStringPtr(u *url.URL) *string {
 	if u == nil {
 		return nil
 	}
 	str := u.String()
+	return &str
+}
+
+func imageURLToStringPtr(u *url.URL) *string {
+	if u == nil {
+		return nil
+	}
+	str := u.String()
+	// Replace WIDTH and HEIGHT placeholders with actual dimensions
+	// Using 400x400 for good quality thumbnails
+	str = strings.ReplaceAll(str, "WIDTH", "400")
+	str = strings.ReplaceAll(str, "HEIGHT", "400")
 	return &str
 }
 

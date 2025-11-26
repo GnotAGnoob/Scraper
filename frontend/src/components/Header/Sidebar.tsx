@@ -10,17 +10,17 @@ interface SidebarProps {
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 	return (
 		<aside
-			className={`fixed top-0 left-0 h-full w-80 bg-background border-r-4 border-border shadow-[4px_0_0_0_var(--border)] z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+			className={`fixed top-0 left-0 z-50 flex h-full w-80 transform flex-col border-border border-r-4 bg-background shadow-[4px_0_0_0_var(--border)] transition-transform duration-300 ease-in-out ${
 				isOpen ? "translate-x-0" : "-translate-x-full"
 			}`}
 		>
-			<div className="flex items-center justify-between p-4 border-b-4 border-border bg-secondary-background">
-				<h2 className="text-xl font-black">MENU</h2>
+			<div className="flex items-center justify-between border-border border-b-4 bg-secondary-background p-4">
+				<h2 className="font-black text-xl">MENU</h2>
 				<Button
 					variant="neutral"
 					size="icon"
 					onClick={onClose}
-					className="bg-chart-3 border-2 border-transparent hover:border-border transition-colors"
+					className="border-2 border-transparent bg-chart-3 transition-colors hover:border-border"
 					aria-label="Close menu"
 				>
 					<X size={24} />

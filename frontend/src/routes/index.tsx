@@ -3,7 +3,7 @@ import { RecipeScraper } from "@/components/RecipeScraper";
 
 const App = () => {
 	return (
-		<div className="min-h-screen bg-background font-sans">
+		<div className="min-h-screen bg-background pt-[5vh] font-sans">
 			<RecipeScraper />
 		</div>
 	);

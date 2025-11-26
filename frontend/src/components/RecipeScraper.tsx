@@ -4,9 +4,11 @@ import { useState } from "react";
 import type { SharedErrorResponse } from "../generated/kosik";
 import { api } from "../lib/api";
 import { InputArea } from "./InputArea";
-import { ProductGrid } from "./ProductGrid";
+import { MonkeyIcon } from "./MonkeyIcon";
+import { ProductGrid } from "./Product/ProductGrid";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
+import { Card } from "./ui/card";
 
 export const RecipeScraper = () => {
 	const [text, setText] = useState("");
@@ -17,6 +19,7 @@ export const RecipeScraper = () => {
 
 	const handleSubmit = () => {
 		if (!text.trim()) return;
+
 		mutation.mutate(text);
 	};
 
@@ -25,19 +28,22 @@ export const RecipeScraper = () => {
 		(mutation.error instanceof Error ? mutation.error.message : "Something went wrong. Please try again.");
 
 	return (
-		<div className="container mx-auto px-4 py-12 max-w-7xl space-y-12">
-			<div className="text-center space-y-4">
-				<h1 className="text-5xl md:text-7xl font-black bg-chart-1 inline-block px-6 py-2 border-4 border-border shadow-[8px_8px_0px_0px_var(--border)] -rotate-1 transform">
-					KOSIK SCRAPER
-				</h1>
-				<p className="text-xl md:text-2xl font-bold text-muted-foreground mt-4">
+		<div className="container mx-auto max-w-[1600px] space-y-6 px-4 py-8">
+			<div className="text-center">
+				<div className="flex justify-center">
+					<div className="-rotate-1 flex transform items-center justify-center gap-2 border-4 border-border bg-chart-1 px-6 py-1 pb-2.5 shadow-[8px_8px_0px_0px_var(--border)]">
+						<MonkeyIcon className="mt-2" size={56} />
+						<h1 className="font-black text-4xl md:text-5xl">Scrape Monkey</h1>
+					</div>
+				</div>
+				<p className="mt-6 font-bold text-muted-foreground text-xl md:text-2xl">
 					Paste your recipe below and get shopping!
 				</p>
 			</div>
 
-			<div className="space-y-6 max-w-4xl mx-auto">
-				<div className="bg-card p-6 border-4 border-border shadow-[8px_8px_0px_0px_var(--border)] rounded-lg">
-					<p className="block text-xl font-bold mb-4 font-mono">{"// RECIPE_INPUT"}</p>
+			<div className="mx-auto max-w-4xl space-y-6">
+				<Card className="rounded-lg border-4 px-6 pt-4 pb-6">
+					<p className="font-bold font-mono text-xl">{"// RECIPE_INPUT"}</p>
 					<InputArea
 						value={text}
 						onChange={setText}
@@ -45,11 +51,11 @@ export const RecipeScraper = () => {
 						disabled={mutation.isPending}
 					/>
 
-					<div className="mt-6 flex justify-end">
+					<div className="mt-2 flex justify-end">
 						<Button
 							onClick={handleSubmit}
 							disabled={mutation.isPending || !text.trim()}
-							className="text-xl px-8 py-6 font-black border-2 border-border shadow-[4px_4px_0px_0px_var(--border)] hover:shadow-[6px_6px_0px_0px_var(--border)] hover:-translate-y-1 hover:-translate-x-1 active:shadow-none active:translate-y-[4px] active:translate-x-[4px] transition-all bg-chart-4 hover:bg-chart-4/90 text-main-foreground"
+							className="bg-chart-4 px-8 py-6 font-black text-xl"
 						>
 							{mutation.isPending ? (
 								<>
@@ -61,27 +67,24 @@ export const RecipeScraper = () => {
 							)}
 						</Button>
 					</div>
-				</div>
+				</Card>
 
 				{mutation.isError && (
-					<Alert
-						variant="destructive"
-						className="border-4 border-border bg-chart-3/20 shadow-[4px_4px_0px_0px_var(--border)]"
-					>
-						<AlertTitle className="text-xl font-black">ERROR</AlertTitle>
-						<AlertDescription className="font-mono text-lg">{errorMessage}</AlertDescription>
+					<Alert className="border-4 bg-chart-3/40">
+						<AlertTitle>ERROR</AlertTitle>
+						<AlertDescription>{errorMessage}</AlertDescription>
 					</Alert>
 				)}
 			</div>
 
 			{mutation.isSuccess && mutation.data.data?.ingredientsProducts && (
-				<div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-					<div className="mb-8 border-b-4 border-border pb-4">
-						<h2 className="text-4xl font-black uppercase">Results</h2>
+				<div className="fade-in slide-in-from-bottom-8 animate-in space-y-4 duration-700">
+					<div className="border-border border-b-4 pb-2">
+						<h2 className="font-black text-3xl uppercase">Results</h2>
 					</div>
 					<ProductGrid results={mutation.data.data.ingredientsProducts} />
 				</div>
 			)}
 		</div>
 	);
-}
+};
