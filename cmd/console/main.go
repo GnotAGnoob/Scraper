@@ -55,7 +55,7 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = scraperLib.GetProducts(ctx, search, totalChan, productsChan)
+			err = scraperLib.GetProducts(ctx, search, 10, totalChan, productsChan)
 		}()
 
 		total, ok := <-totalChan

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ingredientsPrompt  = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish. the input might be in any language, output should be translates into Czech. and return the ingredients in JSON format."
+	ingredientsPrompt  = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish. The input might be in any language, translate it to Czech and put it in the 'name' field, the name in the original language should be put in the 'originalName' field. if the input is a recipe request, return the recipe in the 'recipe' field in the same language as the input. DO NOT INCLUDE THE INGREDIENTS LIST IN THE RECIPE TEXT FIELD. and had to be in markdown format."
 	promptDirectives   = "Return ONLY valid JSON. No prose, no code fences. Convert units to grams. If you must guess, be conservative."
 	promptOutputSchema = `JSON schema:
 {
@@ -21,11 +21,12 @@ const (
       "name": "string",
       "quantityGrams": number,
     }
-  ]
+  ],
+  "recipe": "string",
 }`
 )
 
-func (p *Provider) TextToIngredients(ctx context.Context, text string) ([]shared.Ingredient, error) {
+func (p *Provider) TextToIngredients(ctx context.Context, text string) (*shared.LLMIngredientResult, error) {
 	logger := applogger.LoggerFromContext(ctx)
 	trimmedText := strings.TrimSpace(text)
 	if trimmedText == "" {
@@ -47,5 +48,5 @@ func (p *Provider) TextToIngredients(ctx context.Context, text string) ([]shared
 		return nil, fmt.Errorf("failed to generate LLM response: %w", err)
 	}
 
-	return result.Ingredients, nil
+	return result, nil
 }

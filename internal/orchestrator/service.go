@@ -40,7 +40,7 @@ func NewService(ctx context.Context, cfg *config.Config) (*Service, error) {
 	return &Service{cfg: cfg}, nil
 }
 
-func (s *Service) ProcessTextToProducts(ctx context.Context, text string) ([]IngredientProducts, error) {
+func (s *Service) ProcessTextToProducts(ctx context.Context, text string) (*RecipeResult, error) {
 	trimmed := strings.TrimSpace(text)
 	if trimmed == "" {
 		return nil, ErrEmptyRecipe
@@ -49,21 +49,32 @@ func (s *Service) ProcessTextToProducts(ctx context.Context, text string) ([]Ing
 	logger := applogger.LoggerFromContext(ctx)
 	logger.Info().Int("text_length", len(trimmed)).Msg("parsing recipe with LLM")
 
-	ingredients, err := llm.TextToIngredients(ctx, s.cfg, trimmed)
+	llmResult, err := llm.TextToIngredients(ctx, s.cfg, trimmed)
 	if err != nil {
 		logger.Error().Err(err).Msg("LLM recipe parsing failed")
 		return nil, err
 	}
 
-	ingredientCount := len(ingredients)
+	ingredientCount := len(llmResult.Ingredients)
 	logger.Info().Int("ingredients_count", ingredientCount).Msg("recipe parsed successfully")
 
 	if ingredientCount == 0 {
 		logger.Warn().Msg("no ingredients recognized")
-		return []IngredientProducts{}, nil
+		return &RecipeResult{
+			Recipe: llmResult.Recipe,
+		}, nil
 	}
 
-	return s.scrapeIngredients(ctx, ingredients)
+	scrapedIngredients, err := s.scrapeIngredients(ctx, llmResult.Ingredients)
+	if err != nil {
+		logger.Error().Err(err).Msg("scraping ingredients failed")
+		return nil, err
+	}
+
+	return &RecipeResult{
+		Recipe:              llmResult.Recipe,
+		IngredientsProducts: scrapedIngredients,
+	}, nil
 }
 
 func (s *Service) scrapeIngredients(ctx context.Context, ingredients []shared.Ingredient) ([]IngredientProducts, error) {

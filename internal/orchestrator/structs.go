@@ -38,3 +38,8 @@ type IngredientProducts struct {
 	Source     string            `json:"source"`
 	Products   []*productFields  `json:"products"`
 }
+
+type RecipeResult struct {
+	Recipe              *string              `json:"recipe"`
+	IngredientsProducts []IngredientProducts `json:"ingredientsProducts"`
+}

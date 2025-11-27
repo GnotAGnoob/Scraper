@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { InputArea } from "./InputArea";
 import { MonkeyIcon } from "./MonkeyIcon";
 import { ProductGrid } from "./Product/ProductGrid";
+import { RecipeDisplay } from "./RecipeDisplay";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
@@ -41,7 +42,7 @@ export const RecipeScraper = () => {
 				</p>
 			</div>
 
-			<div className="mx-auto max-w-4xl space-y-6">
+			<div className="mx-auto max-w-6xl space-y-6">
 				<Card className="rounded-lg border-4 px-6 pt-4 pb-6">
 					<p className="font-bold font-mono text-xl">{"// RECIPE_INPUT"}</p>
 					<InputArea
@@ -74,6 +75,17 @@ export const RecipeScraper = () => {
 						<AlertTitle>ERROR</AlertTitle>
 						<AlertDescription>{errorMessage}</AlertDescription>
 					</Alert>
+				)}
+
+				{mutation.isSuccess && (mutation.data?.data.recipe || mutation.data?.data.ingredientsProducts) && (
+					<div className="fade-in slide-in-from-bottom-8 animate-in duration-700">
+						<RecipeDisplay
+							recipe={mutation.data.data.recipe}
+							ingredients={mutation.data.data.ingredientsProducts
+								?.map((ip) => ip.ingredient)
+								.filter((i) => !!i)}
+						/>
+					</div>
 				)}
 			</div>
 

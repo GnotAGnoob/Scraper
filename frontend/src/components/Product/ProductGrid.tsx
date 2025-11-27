@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { OrchestratorIngredientProducts } from "../../generated/kosik";
 import { AutoHeight } from "../ui/auto-height";
 import { Button } from "../ui/button";
@@ -89,7 +89,10 @@ const IngredientSection = ({ item }: IngredientSectionProps) => {
 					<AutoHeight>
 						<div
 							ref={gridRef}
-							className={`grid grid-cols-[repeat(auto-fill,minmax(${MIN_ITEM_WIDTH}rem,1fr))] gap-4 p-2`}
+							className="grid gap-4 p-2"
+							style={{
+								gridTemplateColumns: `repeat(auto-fill, minmax(${MIN_ITEM_WIDTH}rem, 1fr))`,
+							}}
 						>
 							{visibleProducts.map((product, pIndex) => (
 								<ProductCard

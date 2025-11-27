@@ -20,7 +20,7 @@ func NewProvider(ctx context.Context, cfg *config.Config) (shared.Provider, erro
 	}
 }
 
-func TextToIngredients(ctx context.Context, cfg *config.Config, text string) ([]shared.Ingredient, error) {
+func TextToIngredients(ctx context.Context, cfg *config.Config, text string) (*shared.LLMIngredientResult, error) {
 	logger := applogger.LoggerFromContext(ctx)
 	provider, err := NewProvider(ctx, cfg)
 	if err != nil || provider == nil {

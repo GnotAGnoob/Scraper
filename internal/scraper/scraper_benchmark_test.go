@@ -33,7 +33,7 @@ func openSearchAndCloseBrowser(searches ...string) {
 		drainChan(totalChan)
 		drainChan(productsChan)
 
-		_ = scraper.GetProducts(ctx, search, totalChan, productsChan)
+		_ = scraper.GetProducts(ctx, search, 10, totalChan, productsChan)
 	}
 }
 
