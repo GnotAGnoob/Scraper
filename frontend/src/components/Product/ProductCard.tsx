@@ -18,7 +18,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 	const isSoldOut = product.isSoldOut?.value;
 
 	return (
-		<Card className="gap-0 overflow-hidden pt-0">
+		<Card className="gap-0 overflow-hidden pt-0 pb-2">
 			<div className="relative aspect-square w-full overflow-hidden border-border border-b-2 bg-secondary-background">
 				{imageUrl ? (
 					<img
@@ -57,7 +57,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 						</div>
 					</div>
 					{link && (
-						<Button asChild className="w-full font-bold">
+						<Button asChild variant="noShadow" className="w-full font-bold">
 							<a
 								href={link}
 								target="_blank"
