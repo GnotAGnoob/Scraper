@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	maxWorkers = 10
-	// maxProducts        = 25 // todo: put it into the scraper
+	maxWorkers         = 10
+	maxProducts        = 25
 	productSourceKosik = "kosik"
 )
 
@@ -127,7 +127,7 @@ func (s *Service) scrapeIngredient(ctx context.Context, ingredient shared.Ingred
 	errChan := make(chan error, 1)
 
 	go func() {
-		errChan <- scraper.GetProducts(ctx, name, totalChan, productsChan)
+		errChan <- scraper.GetProducts(ctx, name, maxProducts, totalChan, productsChan)
 	}()
 
 	var total int
@@ -155,14 +155,21 @@ func (s *Service) scrapeIngredient(ctx context.Context, ingredient shared.Ingred
 		return ingredientProducts, nil
 	}
 
-	products := make([]*scraperLibShared.ReturnProduct, total)
+	// Collect up to maxProducts, but total is kept for paging purposes
+	expectedCount := maxProducts
+	if total < maxProducts {
+		expectedCount = total
+	}
+
+	// Allocate array of size total to accommodate all possible indices
+	products := make([]*scraperLibShared.ReturnProduct, expectedCount)
 	collectedCount := 0
-	for i := 0; i < total; i++ {
+	for i := 0; i < expectedCount; i++ {
 		select {
 		case productResult, ok := <-productsChan:
 			if !ok {
 				// Channel closed early, collect what we have
-				logger.Warn().Int("collected", collectedCount).Int("expected", total).Msg("channel closed early, collecting partial results")
+				logger.Warn().Int("collected", collectedCount).Int("expected", expectedCount).Msg("channel closed early, collecting partial results")
 				// Wait for error from goroutine
 				var scrapeErr error
 				select {
@@ -180,7 +187,7 @@ func (s *Service) scrapeIngredient(ctx context.Context, ingredient shared.Ingred
 			products[productResult.Index] = productResult.Result
 			collectedCount++
 		case <-ctx.Done():
-			logger.Error().Err(ctx.Err()).Int("collected", collectedCount).Int("expected", total).Msg("context cancelled, returning partial results")
+			logger.Error().Err(ctx.Err()).Int("collected", collectedCount).Int("expected", expectedCount).Msg("context cancelled, returning partial results")
 			// Return what we collected so far
 			transformedProducts := transformProducts(products)
 			ingredientProducts.Products = transformedProducts
