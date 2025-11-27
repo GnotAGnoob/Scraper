@@ -21,14 +21,14 @@ func scrapeProductAsync(ctx context.Context, index int, product *Product, client
 	defer func() {
 		ch <- productResult
 	}()
-	productLink := productResult.Result.Value.Link
+	apiLink, err := urlParams.CreateProductUrl(product.URL)
 
-	if productLink.ScrapeErr != nil {
+	if err != nil {
 		return
 	}
 
 	logger.Debug().Str("product", product.Name).Int("index", index).Msg("scraping nutritions")
-	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](ctx, client, http.MethodGet, productLink.Value.String(), nil)
+	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](ctx, client, http.MethodGet, apiLink.String(), nil)
 	if err != nil {
 		productResult.Result.Value.Nutrition.ScrapeErr = err
 		return
@@ -37,7 +37,7 @@ func scrapeProductAsync(ctx context.Context, index int, product *Product, client
 	productResult.Result.Value.Nutrition.Value = transformKosikSearchProductDetailToNutrition(&parsedNutritionData.Product.Detail)
 }
 
-func GetProducts(ctx context.Context, search string, totalChan chan<- int, productsChan chan<- *shared.ProductResult) error {
+func GetProducts(ctx context.Context, search string, maxProducts int, totalChan chan<- int, productsChan chan<- *shared.ProductResult) error {
 	defer func() {
 		close(totalChan)
 		close(productsChan)
@@ -61,7 +61,7 @@ func GetProducts(ctx context.Context, search string, totalChan chan<- int, produ
 
 	searchProductCount := parsedSearchData.Products.TotalCount
 	total := int(math.Min(float64(searchProductCount), urlParams.KosikProductLimit))
-	logger.Debug().Int("total", total).Msg("products found")
+	logger.Debug().Int("total", total).Int("max_products", maxProducts).Msg("products found")
 	totalChan <- total
 
 	if total == 0 {
@@ -71,12 +71,17 @@ func GetProducts(ctx context.Context, search string, totalChan chan<- int, produ
 	wg := sync.WaitGroup{}
 	defer wg.Wait()
 
+	scrapedCount := 0
 	for index, product := range parsedSearchData.Products.Items {
+		if scrapedCount >= maxProducts {
+			break
+		}
 		wg.Add(1)
+		scrapedCount++
 		go scrapeProductAsync(ctx, index, &product, &client, productsChan, &wg)
 	}
 
-	if searchProductCount <= urlParams.KosikLimit {
+	if scrapedCount >= maxProducts || searchProductCount <= urlParams.KosikLimit {
 		return nil
 	}
 
@@ -94,7 +99,11 @@ func GetProducts(ctx context.Context, search string, totalChan chan<- int, produ
 	}
 
 	for index, product := range parsedSearchMoreData.Products {
+		if scrapedCount >= maxProducts {
+			break
+		}
 		wg.Add(1)
+		scrapedCount++
 		go scrapeProductAsync(ctx, index+len(parsedSearchData.Products.Items), &product, &client, productsChan, &wg)
 	}
 

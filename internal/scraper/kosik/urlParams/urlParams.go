@@ -84,3 +84,18 @@ func CreateProductUrl(productPath string) (*url.URL, error) {
 
 	return &productUrl, nil
 }
+
+func CreatePublicProductUrl(productPath string) (*url.URL, error) {
+	if len(productPath) == 0 {
+		return nil, errors.New("product path is empty")
+	}
+
+	productUrl := GetKosikUrl()
+	newPath, err := url.JoinPath(productUrl.Path, productPath)
+	if err != nil {
+		return nil, err
+	}
+	productUrl.Path = newPath
+
+	return &productUrl, nil
+}
