@@ -18,6 +18,7 @@
 	--ring: oklch(0% 0 0);
 	--overlay: oklch(0% 0 0 / 0.8);
 	--shadow: 4px 4px 0px 0px var(--border);
+	--shadow-hover: 6px 6px 0px 0px var(--border);
 	--chart-1: #ffbf00;
 	--chart-2: #0099ff;
 	--chart-3: #ff7a05;
@@ -71,6 +72,7 @@
 	--shadow-shadow: var(--shadow);
 	--font-weight-base: 600;
 	--font-weight-heading: 800;
+	--text-2xs: 0.675rem;
 }
 
 @layer base {

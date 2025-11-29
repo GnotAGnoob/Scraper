@@ -1,10 +1,8 @@
 import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area";
 
-import type * as React from "react";
-
 import { cn } from "@/lib/utils";
 
-const ScrollArea = ({ className, children, ...props }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) => {
+function ScrollArea({ className, children, ...props }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
 	return (
 		<ScrollAreaPrimitive.Root
 			data-slot="scroll-area"
@@ -16,13 +14,13 @@ const ScrollArea = ({ className, children, ...props }: React.ComponentProps<type
 			<ScrollAreaPrimitive.Corner />
 		</ScrollAreaPrimitive.Root>
 	);
-};
+}
 
-const ScrollBar = ({
+function ScrollBar({
 	className,
 	orientation = "vertical",
 	...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) => {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
 	return (
 		<ScrollAreaPrimitive.ScrollAreaScrollbar
 			data-slot="scroll-area-scrollbar"
@@ -38,6 +36,6 @@ const ScrollBar = ({
 			<ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
 		</ScrollAreaPrimitive.ScrollAreaScrollbar>
 	);
-};
+}
 
 export { ScrollArea, ScrollBar };

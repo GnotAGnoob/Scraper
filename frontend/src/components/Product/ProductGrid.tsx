@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { OrchestratorIngredientProducts } from "../../generated/kosik";
 import { AutoHeight } from "../ui/auto-height";
 import { Button } from "../ui/button";
+import { SectionBadge } from "../ui/section-badge";
 import { ProductCard } from "./ProductCard";
 import { ProductEmpty } from "./ProductEmpty";
 
@@ -80,9 +81,9 @@ const IngredientSection = ({ item }: IngredientSectionProps) => {
 
 	return (
 		<div className="space-y-4">
-			<h3 className="inline-block border-2 border-border bg-chart-5 px-4 py-1 font-black text-2xl shadow-shadow">
+			<SectionBadge color="chart-5" size="lg">
 				{title}
-			</h3>
+			</SectionBadge>
 
 			{products.length > 0 ? (
 				<>
@@ -95,11 +96,7 @@ const IngredientSection = ({ item }: IngredientSectionProps) => {
 							}}
 						>
 							{visibleProducts.map((product, pIndex) => (
-								<ProductCard
-									key={product.link?.value || pIndex}
-									product={product}
-									ingredientName={ingredientName}
-								/>
+								<ProductCard key={product.link?.value || pIndex} product={product} />
 							))}
 						</div>
 					</AutoHeight>

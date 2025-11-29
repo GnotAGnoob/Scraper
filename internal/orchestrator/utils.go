@@ -28,7 +28,7 @@ func mapProductFields(product *scraperLibShared.Product) *productFields {
 		Price:        mapField(product.Price),
 		Currency:     mapField(product.Currency),
 		Unit:         mapField(product.Unit),
-		PricePerUnit: mapField(product.PricePerUnit),
+		PricePerUnit: mapPricePerUnitField(product.PricePerUnit),
 		Link:         mapURLField(product.Link),
 		ImageURL:     mapImageURLField(product.ImageUrl),
 		IsSoldOut:    mapField(product.IsSoldOut),
@@ -79,6 +79,16 @@ func mapURLField(result scraperLibShared.ScrapeResult[*url.URL]) fieldResult[*st
 func mapImageURLField(result scraperLibShared.ScrapeResult[*url.URL]) fieldResult[*string] {
 	return fieldResult[*string]{
 		Value: imageURLToStringPtr(result.Value),
+		Error: errorString(result.ScrapeErr),
+	}
+}
+
+func mapPricePerUnitField(result scraperLibShared.ScrapeResult[scraperLibShared.PricePerUnit]) fieldResult[pricePerUnit] {
+	return fieldResult[pricePerUnit]{
+		Value: pricePerUnit{
+			Value: result.Value.Value,
+			Unit:  result.Value.Unit,
+		},
 		Error: errorString(result.ScrapeErr),
 	}
 }

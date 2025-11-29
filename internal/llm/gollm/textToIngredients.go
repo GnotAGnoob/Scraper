@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	ingredientsPrompt  = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish. The input might be in any language, translate it to Czech and put it in the 'name' field, the name in the original language should be put in the 'originalName' field. if the input is a recipe request, return the recipe in the 'recipe' field in the same language as the input. DO NOT INCLUDE THE INGREDIENTS LIST IN THE RECIPE TEXT FIELD. and had to be in markdown format."
+	ingredientsPrompt  = "Process the input: if it's a list of ingredients, extract them; if it's a dish name or recipe request (e.g., 'I want a burrito'), generate appropriate ingredients for that dish. The input might be in any language, translate it to Czech and put it in the 'name' field, the name in the original language should be put in the 'originalName' field. if the input is a recipe request, return the recipe in the 'recipe' field in the same language as the input but do not include the recipe if the user put only ingredients. DO NOT INCLUDE THE INGREDIENTS LIST IN THE RECIPE TEXT FIELD. and had to be in markdown format."
 	promptDirectives   = "Return ONLY valid JSON. No prose, no code fences. Convert units to grams. If you must guess, be conservative."
 	promptOutputSchema = `JSON schema:
 {
