@@ -73,8 +73,10 @@ export const IngredientSection = ({ item, globalSort }: IngredientSectionProps) 
 		setExpanded((prev) => !prev);
 	};
 
-	const globalLabel = SORT_OPTIONS.find((o) => o.value === globalSort.key)?.label || globalSort.key;
+	const globalOption = SORT_OPTIONS.find((o) => o.value === globalSort.key);
+	const globalLabel = globalOption?.label || globalSort.key;
 	const defaultLabel = `Default (${globalLabel})`;
+	const defaultIcon = globalOption?.icon;
 
 	const handleSortChange = (key: SortKeyDefault) => {
 		if (key === "default") {
@@ -103,6 +105,7 @@ export const IngredientSection = ({ item, globalSort }: IngredientSectionProps) 
 					options={SORT_OPTIONS}
 					showDefaultOption={true}
 					defaultLabel={defaultLabel}
+					defaultIcon={defaultIcon}
 					onSortChange={handleSortChange}
 					onDirectionToggle={handleDirectionToggle}
 				/>
