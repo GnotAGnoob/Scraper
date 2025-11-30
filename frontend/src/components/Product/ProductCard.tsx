@@ -81,15 +81,28 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 					</div>
 				</div>
 
-				<div className="mt-1 mb-2 h-px w-full bg-border/20" />
+				<div className="mt-1 mb-1 h-px w-full bg-border/20" />
 
-				<div className="flex grow flex-col justify-between gap-3">
+				<div className="flex grow flex-col justify-between gap-3 px-1">
 					{nutrition && (
-						<div className="grid grid-cols-4 gap-1.5">
-							<NutritionItem label="Kcal" value={nutrition.calories?.value} unit="" />
-							<NutritionItem label="Prot" value={nutrition.protein?.value} />
-							<NutritionItem label="Carbs" value={nutrition.carbs?.value} />
-							<NutritionItem label="Fats" value={nutrition.fat?.value} />
+						<div className="flex flex-col gap-0.5">
+							<NutritionItem label="Calories" value={nutrition.calories?.value} unit="kcal" />
+							<NutritionItem label="Protein" value={nutrition.protein?.value} unit="g" />
+							<NutritionItem
+								label="Fats"
+								value={nutrition.fat?.value}
+								unit="g"
+								subLabel="Sat."
+								subValue={nutrition.saturatedFat?.value}
+							/>
+							<NutritionItem
+								label="Carbs"
+								value={nutrition.carbs?.value}
+								unit="g"
+								subLabel="Sug."
+								subValue={nutrition.sugar?.value}
+							/>
+							<NutritionItem label="Fiber" value={nutrition.fiber?.value} unit="g" />
 						</div>
 					)}
 

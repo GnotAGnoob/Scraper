@@ -11,7 +11,7 @@ const kosikVendor = 1 // idk what it does
 const KosikLimit = 30 // the apis max limit. otherwise it returns error.
 const kosikSearchMoreEndpoint = "/api/front/products/more"
 const kosikProductDetailEndpoint = "/api/front/product/slug"
-const KosikSearchMoreLimit = 30 // our own limit. I dont want to get too many products.
+const KosikSearchMoreLimit = 70 // our own limit. I dont want to get too many products.
 const KosikProductLimit = KosikLimit + KosikSearchMoreLimit
 
 const searchParam = "search"

@@ -50,6 +50,7 @@ export const RecipeScraper = () => {
 						onChange={setText}
 						placeholder="Paste your ingredients list or full recipe here... e.g., '200g chicken breast, 1 onion, 500ml milk'"
 						disabled={mutation.isPending}
+						onSubmit={handleSubmit}
 					/>
 
 					<div className="mt-2 flex justify-end">
@@ -91,9 +92,6 @@ export const RecipeScraper = () => {
 
 			{mutation.isSuccess && mutation.data.data?.ingredientsProducts && (
 				<div className="fade-in slide-in-from-bottom-8 animate-in space-y-4 duration-700">
-					<div className="border-border border-b-4 pb-2">
-						<h2 className="font-black text-3xl uppercase">Results</h2>
-					</div>
 					<ProductGrid results={mutation.data.data.ingredientsProducts} />
 				</div>
 			)}

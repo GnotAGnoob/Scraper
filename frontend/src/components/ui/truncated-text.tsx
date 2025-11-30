@@ -86,7 +86,7 @@ export const TruncatedText = ({ text, className, truncatedClassName, maxLines = 
 					{text}
 				</button>
 			</PopoverTrigger>
-			<PopoverContent align="center" side="top">
+			<PopoverContent align="center" side="top" className="w-96">
 				<div className="wrap-break-word whitespace-pre-wrap text-sm leading-snug">{text}</div>
 			</PopoverContent>
 		</Popover>

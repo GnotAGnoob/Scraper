@@ -17,7 +17,7 @@ import (
 
 const (
 	maxWorkers         = 10
-	maxProducts        = 25
+	maxProducts        = 100
 	productSourceKosik = "kosik"
 )
 

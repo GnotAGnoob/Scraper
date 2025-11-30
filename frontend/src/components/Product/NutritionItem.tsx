@@ -1,21 +1,33 @@
-interface NutritionItemProps {
+import { cn } from "@/lib/utils";
+
+interface NutritionRowProps {
 	label: string;
-	value?: number;
+	value: number | undefined | null;
 	unit?: string;
+	subLabel?: string;
+	subValue?: number | undefined | null;
+	className?: string;
 }
 
-export const NutritionItem = ({ label, value, unit = "g" }: NutritionItemProps) => {
+const formatter = new Intl.NumberFormat("en-US", {
+	maximumFractionDigits: 1,
+	minimumFractionDigits: 0,
+});
+
+export const NutritionItem = ({ label, value, unit = "g", subLabel, subValue, className }: NutritionRowProps) => {
 	if (value === undefined || value === null) return null;
+
 	return (
-		<div className="flex flex-col items-center justify-center rounded-(--radius) border border-border/20 p-1 text-center">
-			<span className="font-bold text-xs">{label}</span>
-			<span className="text-2xs text-muted-foreground">
-				{new Intl.NumberFormat("en-US", {
-					maximumFractionDigits: 1,
-					minimumFractionDigits: 0,
-				}).format(value)}
-				{unit}
-			</span>
+		<div className={cn("flex items-center justify-between text-xs", className)}>
+			<span className="text-muted-foreground">{label}</span>
+			<div className="flex items-baseline gap-1.5">
+				<span className="font-medium text-foreground">{`${formatter.format(value)} ${unit}`}</span>
+				{subValue && (
+					<span className="text-2xs text-muted-foreground">
+						({subLabel} {`${formatter.format(subValue)} ${unit}`})
+					</span>
+				)}
+			</div>
 		</div>
 	);
 };
