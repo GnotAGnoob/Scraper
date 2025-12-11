@@ -30,7 +30,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
 	return (
 		<Card className="flex h-full flex-col gap-0 overflow-hidden pt-0 pb-2 transition-all hover:shadow-(--shadow-hover)">
-			<div className="relative aspect-square w-full shrink-0 overflow-hidden border-border border-b bg-secondary-background">
+			<div className="relative aspect-square w-full shrink-0 overflow-hidden border-border border-b bg-white">
 				{imageUrl ? (
 					<img
 						src={imageUrl}
@@ -47,10 +47,8 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 					</div>
 				)}
 				{isSoldOut && (
-					<div className="absolute inset-0 flex items-center justify-center bg-chart-3/40">
-						<Badge variant="neutral" className="bg-chart-3 font-bold text-lg text-white">
-							Sold Out
-						</Badge>
+					<div className="absolute inset-0 flex items-center justify-center bg-main/20">
+						<Badge className="font-bold text-lg">Sold Out</Badge>
 					</div>
 				)}
 			</div>
@@ -123,7 +121,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
 				<div className="mt-4">
 					{link ? (
-						<Button asChild variant="neutral" size="sm" className="h-8 w-full gap-2 bg-chart-4 text-xs">
+						<Button asChild size="sm" className="h-8 w-full gap-2 text-xs">
 							<a href={link} target="_blank" rel="noopener noreferrer">
 								View on Shop <ExternalLink size={12} />
 							</a>

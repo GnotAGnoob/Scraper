@@ -32,7 +32,7 @@ export const RecipeScraper = () => {
 		<div className="container mx-auto max-w-[1600px] space-y-6 px-4 py-8">
 			<div className="text-center">
 				<div className="flex justify-center">
-					<div className="-rotate-1 flex transform items-center justify-center gap-2 border-4 border-border bg-chart-1 px-6 py-1 pb-2.5 shadow-[8px_8px_0px_0px_var(--border)]">
+					<div className="-rotate-1 flex transform items-center justify-center gap-2 border-4 border-border bg-main px-6 py-1 pb-2.5 shadow-[8px_8px_0px_0px_var(--border)]">
 						<MonkeyIcon className="mt-2" size={56} />
 						<h1 className="font-black text-4xl md:text-5xl">Scrape Monkey</h1>
 					</div>
@@ -57,7 +57,7 @@ export const RecipeScraper = () => {
 						<Button
 							onClick={handleSubmit}
 							disabled={mutation.isPending || !text.trim()}
-							className="bg-chart-4 px-8 py-6 font-black text-xl"
+							className="px-8 py-6 font-black text-xl"
 						>
 							{mutation.isPending ? (
 								<>
@@ -72,7 +72,7 @@ export const RecipeScraper = () => {
 				</Card>
 
 				{mutation.isError && (
-					<Alert className="border-4 bg-chart-3/40">
+					<Alert variant="destructive">
 						<AlertTitle>ERROR</AlertTitle>
 						<AlertDescription>{errorMessage}</AlertDescription>
 					</Alert>

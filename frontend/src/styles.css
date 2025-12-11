@@ -7,44 +7,55 @@
 /* biome-ignore lint: Tailwind CSS v4 custom variant */
 @custom-variant dark (&:is(.dark *));
 
+/* 
+   THEME SYSTEM:
+   - Consistent Lightness/Chroma scales across themes.
+   - Hues vary per theme.
+   - "Brutalist" feel preserved with distinct borders and shadows.
+*/
+
 :root {
-	--background: oklch(96.22% 0.0569 95.61);
-	--secondary-background: oklch(100% 0 0);
-	--foreground: oklch(0% 0 0);
-	--main-foreground: oklch(0% 0 0);
-	--muted-foreground: oklch(45% 0 0);
-	--main: oklch(84.08% 0.1725 84.2);
-	--border: oklch(0% 0 0);
-	--ring: oklch(0% 0 0);
-	--overlay: oklch(0% 0 0 / 0.8);
+	--hue: 235;
+	--background: oklch(98% 0.01 var(--hue));
+	--secondary-background: oklch(95% 0.02 var(--hue));
+	--foreground: oklch(30% 0.06 var(--hue));
+	--main-foreground: oklch(98% 0.01 var(--hue));
+	--muted-foreground: oklch(55% 0.1 var(--hue));
+	--main: oklch(72% 0.3 var(--hue));
+	--border: var(--foreground);
+	--ring: var(--foreground);
+	--overlay: oklch(20% 0.06 var(--hue) / 0.8);
 	--shadow: 4px 4px 0px 0px var(--border);
 	--shadow-hover: 6px 6px 0px 0px var(--border);
-	--chart-1: #ffbf00;
-	--chart-2: #0099ff;
-	--chart-3: #ff7a05;
-	--chart-4: #00d696;
-	--chart-5: #7a83ff;
-	--chart-active-dot: #000;
+
+	--chart-1: oklch(65% 0.2 15);
+	--chart-2: oklch(72% 0.35 170);
+	--chart-3: oklch(85% 0.2 85);
+	--chart-4: oklch(80% 0.2 326);
+	--chart-5: var(--main);
+	--chart-active-dot: var(--foreground);
+
 	--radius: 5px;
 	--radius-lg: 10px;
 }
 
 .dark {
-	--background: oklch(28.91% 0.0359 90.09);
-	--secondary-background: oklch(23.93% 0 0);
-	--foreground: oklch(92.49% 0 0);
-	--main-foreground: oklch(0% 0 0);
-	--muted-foreground: oklch(65% 0 0);
-	--main: oklch(77.7% 0.1593880864006951 84.38427202675717);
-	--border: oklch(0% 0 0);
-	--ring: oklch(100% 0 0);
-	--shadow: 4px 4px 0px 0px var(--border);
-	--chart-1: #e5ac00;
-	--chart-2: #008ae5;
-	--chart-3: #eb6d00;
-	--chart-4: #00bd84;
-	--chart-5: #7a83ff;
-	--chart-active-dot: #fff;
+	--hue: 235;
+	--background: oklch(20% 0.04 var(--hue));
+	--secondary-background: oklch(25% 0.05 var(--hue));
+	--foreground: oklch(95% 0.03 var(--hue));
+	--main-foreground: oklch(20% 0.04 var(--hue));
+	--muted-foreground: oklch(65% 0.05 var(--hue));
+	--main: oklch(70% 0.25 var(--hue));
+	--border: oklch(40% 0.08 var(--hue));
+	--ring: oklch(40% 0.08 var(--hue));
+
+	--chart-1: oklch(70% 0.25 25);
+	--chart-2: oklch(75% 0.25 160);
+	--chart-3: oklch(80% 0.25 85);
+	--chart-4: oklch(70% 0.25 320);
+	--chart-5: var(--main);
+	--chart-active-dot: var(--foreground);
 }
 
 /* stylelint-disable-next-line at-rule-no-unknown */

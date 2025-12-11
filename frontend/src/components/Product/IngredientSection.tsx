@@ -95,7 +95,7 @@ export const IngredientSection = ({ item, globalSort }: IngredientSectionProps) 
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-wrap items-center justify-between gap-4">
-				<SectionBadge color="chart-5" size="lg">
+				<SectionBadge color="chart-2" size="lg">
 					{title}
 				</SectionBadge>
 

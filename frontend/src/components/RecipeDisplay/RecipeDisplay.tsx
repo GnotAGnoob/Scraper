@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import type { SharedIngredient } from "../../generated/kosik";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
+import { ScrollArea } from "../ui/scroll-area";
 import { RecipeContent } from "./RecipeContent";
 
 interface RecipeDisplayProps {
@@ -15,7 +16,7 @@ export const RecipeDisplay = ({ recipe, ingredients }: RecipeDisplayProps) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	return (
-		<Card className={cn("rounded-lg border-4 px-2 py-4", isOpen && "pb-0")}>
+		<Card className={cn("gap-0 rounded-lg border-4 px-2 py-4", isOpen && "pb-0")}>
 			<button
 				type="button"
 				className="flex w-full cursor-pointer items-center justify-between px-4"
@@ -30,7 +31,15 @@ export const RecipeDisplay = ({ recipe, ingredients }: RecipeDisplayProps) => {
 				</div>
 			</button>
 
-			{isOpen && <RecipeContent recipe={recipe} ingredients={ingredients} />}
+			<div className="mx-4 mt-4 border-border/50 border-t-2 border-dashed" />
+
+			{isOpen && (
+				<ScrollArea className="h-[min(35rem,50vh)] px-6">
+					<div className="py-4">
+						<RecipeContent recipe={recipe} ingredients={ingredients} />
+					</div>
+				</ScrollArea>
+			)}
 		</Card>
 	);
 };

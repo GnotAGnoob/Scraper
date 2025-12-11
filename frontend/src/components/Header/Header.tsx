@@ -1,30 +1,9 @@
-import { Link } from "@tanstack/react-router";
-import { Menu } from "lucide-react";
-import { useState } from "react";
-import { Overlay } from "../Overlay";
-import { Button } from "../ui/button";
-import { Sidebar } from "./Sidebar";
+import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 
-const Header = () => {
-	const [isOpen, setIsOpen] = useState(false);
-
+export const Header = () => {
 	return (
-		<>
-			<header className="relative z-50 flex items-center border-border border-b-4 bg-secondary-background p-4 shadow-[4px_4px_0px_0px_var(--border)]">
-				<Button variant="neutral" size="icon" onClick={() => setIsOpen(true)} aria-label="Open menu">
-					<Menu size={24} />
-				</Button>
-				<h1 className="ml-4 font-black text-2xl italic tracking-tighter">
-					<Link to="/">
-						SCRAPE<span className="text-chart-1">MONKEY</span>
-					</Link>
-				</h1>
-			</header>
-
-			<Overlay isOpen={isOpen} onClose={() => setIsOpen(false)} />
-			<Sidebar isOpen={isOpen} onClose={() => setIsOpen(false)} />
-		</>
+		<header className="flex justify-end p-4">
+			<ThemeSwitcher />
+		</header>
 	);
 };
-
-export default Header;
