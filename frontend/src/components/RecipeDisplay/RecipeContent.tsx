@@ -20,7 +20,7 @@ export const RecipeContent = ({ recipe, ingredients }: RecipeContentProps) => {
 						{ingredients.map((ing, idx) => (
 							<div
 								key={`${ing.originalName || ing.name}-${idx}`}
-								className="flex items-center justify-between border-border/10 border-b py-1 last:border-0"
+								className="flex items-center justify-between border-border/10 border-b py-1 last:border-0 sm:nth-last-[-n+2]:border-0 md:nth-last-[-n+3]:border-0"
 							>
 								<span className="mr-2 truncate font-medium" title={ing.originalName || ing.name}>
 									{ing.originalName || ing.name}

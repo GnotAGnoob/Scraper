@@ -31,14 +31,15 @@ export const RecipeDisplay = ({ recipe, ingredients }: RecipeDisplayProps) => {
 				</div>
 			</button>
 
-			<div className="mx-4 mt-4 border-border/50 border-t-2 border-dashed" />
-
 			{isOpen && (
-				<ScrollArea className="h-[min(35rem,50vh)] px-6">
-					<div className="py-4">
-						<RecipeContent recipe={recipe} ingredients={ingredients} />
-					</div>
-				</ScrollArea>
+				<>
+					<div className="mx-4 mt-4 border-border/50 border-t-2 border-dashed" />
+					<ScrollArea className={cn("px-6", !!recipe && "h-[min(35rem,50vh)]")}>
+						<div className="py-4">
+							<RecipeContent recipe={recipe} ingredients={ingredients} />
+						</div>
+					</ScrollArea>
+				</>
 			)}
 		</Card>
 	);
