@@ -10,7 +10,7 @@ type Product struct {
 	Unit string `json:"unit"`
 	// RecommendedPrice            float64           `json:"recommendedPrice"`
 	// PercentageDiscount          int               `json:"percentageDiscount"`
-	// ProductQuantity *productQuantity `json:"productQuantity"`
+	ProductQuantity *productQuantity `json:"productQuantity"`
 	// Labels                      []label           `json:"labels"`
 	// ActionLabel                 *string           `json:"actionLabel"`
 	// CountryCode                 string            `json:"countryCode"`

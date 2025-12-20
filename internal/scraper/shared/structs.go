@@ -20,16 +20,23 @@ type PricePerUnit struct {
 	Unit  string
 }
 
+type ProductQuantity struct {
+	Prefix string
+	Value  float64
+	Unit   string
+}
+
 type Product struct {
-	Name         ScrapeResult[string]
-	Price        ScrapeResult[float64]
-	Currency     ScrapeResult[string]
-	Unit         ScrapeResult[string]
-	PricePerUnit ScrapeResult[PricePerUnit]
-	Link         ScrapeResult[*url.URL]
-	ImageUrl     ScrapeResult[*url.URL]
-	IsSoldOut    ScrapeResult[bool]
-	Nutrition    ScrapeResult[*Nutrition]
+	Name            ScrapeResult[string]
+	Price           ScrapeResult[float64]
+	Currency        ScrapeResult[string]
+	Unit            ScrapeResult[string]
+	PricePerUnit    ScrapeResult[PricePerUnit]
+	ProductQuantity ScrapeResult[*ProductQuantity]
+	Link            ScrapeResult[*url.URL]
+	ImageUrl        ScrapeResult[*url.URL]
+	IsSoldOut       ScrapeResult[bool]
+	Nutrition       ScrapeResult[*Nutrition]
 }
 
 type ReturnProduct struct {

@@ -24,14 +24,15 @@ func transformProducts(products []*scraperLibShared.ReturnProduct) []*productFie
 
 func mapProductFields(product *scraperLibShared.Product) *productFields {
 	fields := &productFields{
-		Name:         mapField(product.Name),
-		Price:        mapField(product.Price),
-		Currency:     mapField(product.Currency),
-		Unit:         mapField(product.Unit),
-		PricePerUnit: mapPricePerUnitField(product.PricePerUnit),
-		Link:         mapURLField(product.Link),
-		ImageURL:     mapImageURLField(product.ImageUrl),
-		IsSoldOut:    mapField(product.IsSoldOut),
+		Name:            mapField(product.Name),
+		Price:           mapField(product.Price),
+		Currency:        mapField(product.Currency),
+		Unit:            mapField(product.Unit),
+		PricePerUnit:    mapPricePerUnitField(product.PricePerUnit),
+		ProductQuantity: mapProductQuantityField(product.ProductQuantity),
+		Link:            mapURLField(product.Link),
+		ImageURL:        mapImageURLField(product.ImageUrl),
+		IsSoldOut:       mapField(product.IsSoldOut),
 	}
 
 	fields.Nutrition = mapNutritionField(product.Nutrition)
@@ -91,6 +92,18 @@ func mapPricePerUnitField(result scraperLibShared.ScrapeResult[scraperLibShared.
 		},
 		Error: errorString(result.ScrapeErr),
 	}
+}
+
+func mapProductQuantityField(result scraperLibShared.ScrapeResult[*scraperLibShared.ProductQuantity]) fieldResult[*productQuantity] {
+	res := fieldResult[*productQuantity]{Error: errorString(result.ScrapeErr)}
+	if result.Value != nil {
+		res.Value = &productQuantity{
+			Prefix: result.Value.Prefix,
+			Value:  result.Value.Value,
+			Unit:   result.Value.Unit,
+		}
+	}
+	return res
 }
 
 func urlToStringPtr(u *url.URL) *string {

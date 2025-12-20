@@ -36,18 +36,28 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 		Unit:  productData.PricePerUnit.Unit,
 	}
 
+	var productQuantity *shared.ProductQuantity
+	if productData.ProductQuantity != nil {
+		productQuantity = &shared.ProductQuantity{
+			Prefix: productData.ProductQuantity.Prefix,
+			Value:  productData.ProductQuantity.Value,
+			Unit:   productData.ProductQuantity.Unit,
+		}
+	}
+
 	return &shared.ProductResult{
 		Index: index,
 		Result: &shared.ReturnProduct{ScrapeResult: shared.ScrapeResult[*shared.Product]{
 			Value: &shared.Product{
-				Name:         shared.ScrapeResult[string]{Value: productData.Name},
-				Price:        shared.ScrapeResult[float64]{Value: productData.Price},
-				Currency:     shared.ScrapeResult[string]{Value: "CZK"},
-				PricePerUnit: shared.ScrapeResult[shared.PricePerUnit]{Value: pricePerUnit},
-				Unit:         shared.ScrapeResult[string]{Value: productData.Unit},
-				Link:         urlResult,
-				ImageUrl:     imageResult,
-				IsSoldOut:    shared.ScrapeResult[bool]{Value: productData.MaxInCart == 0},
+				Name:            shared.ScrapeResult[string]{Value: productData.Name},
+				Price:           shared.ScrapeResult[float64]{Value: productData.Price},
+				Currency:        shared.ScrapeResult[string]{Value: "CZK"},
+				PricePerUnit:    shared.ScrapeResult[shared.PricePerUnit]{Value: pricePerUnit},
+				Unit:            shared.ScrapeResult[string]{Value: productData.Unit},
+				ProductQuantity: shared.ScrapeResult[*shared.ProductQuantity]{Value: productQuantity},
+				Link:            urlResult,
+				ImageUrl:        imageResult,
+				IsSoldOut:       shared.ScrapeResult[bool]{Value: productData.MaxInCart == 0},
 			},
 			ScrapeErr: nil,
 		}},

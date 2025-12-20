@@ -22,7 +22,7 @@ export const NutritionItem = ({ label, value, unit = "g", subLabel, subValue, cl
 			<span className="text-muted-foreground">{label}</span>
 			<div className="flex items-baseline gap-1.5">
 				<span className="font-medium text-foreground">{`${formatter.format(value)} ${unit}`}</span>
-				{subValue && (
+				{!!subValue && (
 					<span className="text-2xs text-muted-foreground">
 						({subLabel} {`${formatter.format(subValue)} ${unit}`})
 					</span>

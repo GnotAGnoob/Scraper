@@ -19,6 +19,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 	const link = product.link?.value;
 	const isSoldOut = product.isSoldOut?.value;
 	const pricePerUnit = product.pricePerUnit?.value;
+	const productQuantity = product.productQuantity?.value;
 	const ingredients = product.nutrition?.value?.ingredients?.value;
 	const nutrition = product.nutrition?.value;
 
@@ -71,11 +72,20 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 								<AlertCircle className="h-3.5 w-3.5" /> N/A
 							</span>
 						)}
-						{pricePerUnit?.value && (
-							<span className="font-medium text-muted-foreground text-xs leading-tight">
-								{formatCurrency.format(pricePerUnit.value)} / {pricePerUnit.unit}
-							</span>
-						)}
+						<div className="flex justify-between">
+							{pricePerUnit?.value && (
+								<span className="font-medium text-muted-foreground text-xs leading-tight">
+									{formatCurrency.format(pricePerUnit.value)} / {pricePerUnit.unit}
+								</span>
+							)}
+							{productQuantity && (
+								<span className="font-medium text-muted-foreground text-xs leading-tight">
+									{[productQuantity.prefix, productQuantity.value, productQuantity.unit]
+										.filter(Boolean)
+										.join(" ")}
+								</span>
+							)}
+						</div>
 					</div>
 				</div>
 
