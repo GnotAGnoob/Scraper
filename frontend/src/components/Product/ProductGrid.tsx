@@ -8,7 +8,7 @@ import type { ProductGridProps, Sort, SortKey } from "./types";
 import { SORT_OPTIONS } from "./utils";
 
 export const ProductGrid = ({ results }: ProductGridProps) => {
-	const [globalSort, setGlobalSort] = useState<Sort>({ key: "price", direction: "asc" });
+	const [globalSort, setGlobalSort] = useState<Sort>({ key: "pricePerUnit", direction: "asc" });
 
 	if (results.length === 0) {
 		return <ProductEmpty />;

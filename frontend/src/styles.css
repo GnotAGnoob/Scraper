@@ -1,10 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-/* biome-ignore lint: Tailwind CSS v4 plugin */
 @plugin "@tailwindcss/typography";
 
 /* stylelint-disable-next-line at-rule-no-unknown */
-/* biome-ignore lint: Tailwind CSS v4 custom variant */
 @custom-variant dark (&:is(.dark *));
 
 /* 
@@ -59,7 +57,6 @@
 }
 
 /* stylelint-disable-next-line at-rule-no-unknown */
-/* biome-ignore lint: Tailwind CSS v4 theme */
 @theme inline {
 	--color-main: var(--main);
 	--color-background: var(--background);
@@ -89,7 +86,6 @@
 @layer base {
 	body {
 		/* stylelint-disable-next-line at-rule-no-unknown */
-		/* biome-ignore lint: Tailwind CSS @apply */
 		@apply text-foreground font-base bg-background;
 	}
 
@@ -100,7 +96,6 @@
 	h5,
 	h6 {
 		/* stylelint-disable-next-line at-rule-no-unknown */
-		/* biome-ignore lint: Tailwind CSS @apply */
 		@apply font-heading;
 	}
 }

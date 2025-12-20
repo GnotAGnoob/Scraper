@@ -53,7 +53,7 @@ export const SortControl = <T extends string>({
 	return (
 		<div className={`flex items-center gap-2 ${className || ""}`}>
 			<Select value={sortKey} onValueChange={onSortChange}>
-				<SelectTrigger variant="default" className="w-52">
+				<SelectTrigger variant="default" className="w-54">
 					<SelectValue placeholder="Sort by..." />
 				</SelectTrigger>
 				<SelectContent>

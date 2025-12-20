@@ -7,7 +7,7 @@ import type * as React from "react";
 import { cn } from "@/lib/utils";
 
 const selectTriggerVariants = cva(
-	"flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-base border-2 border-border px-3 py-2 font-base text-sm ring-offset-white transition-all placeholder:text-foreground/50 focus:outline-hidden focus:ring-2 focus:ring-black focus:ring-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&>span]:line-clamp-1 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+	"flex h-10 w-full cursor-pointer items-center justify-between gap-2 rounded-base border-2 border-border px-3 py-2 font-base text-sm tracking-tight ring-offset-white transition-all placeholder:text-foreground/50 focus:outline-hidden focus:ring-2 focus:ring-black focus:ring-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&>span]:line-clamp-1 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
