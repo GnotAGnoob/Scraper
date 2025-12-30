@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { AutoHeight } from "../ui/auto-height";
 import { Button } from "../ui/button";
@@ -18,6 +18,7 @@ export const IngredientSection = ({ item, globalSort }: IngredientSectionProps) 
 	const ingredientName = item.ingredient?.name || "Unknown Ingredient";
 	const quantity = item.ingredient?.quantityGrams ? `${item.ingredient.quantityGrams}g` : "";
 	const title = quantity ? `${ingredientName} (${quantity})` : ingredientName;
+	const searchUrl = item.searchUrl;
 
 	const products = item.products || [];
 
@@ -95,9 +96,18 @@ export const IngredientSection = ({ item, globalSort }: IngredientSectionProps) 
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-wrap items-center justify-between gap-4">
-				<SectionBadge color="chart-2" size="lg">
-					{title}
-				</SectionBadge>
+				{/* // create a linkbutton that takes the style from the button. @frontend/src/components/Product/IngredientSection.tsx:99-109 then use the linkbutton instead of the sectionBadge */}
+				<a
+					href={searchUrl}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="inline-flex items-center gap-2 no-underline"
+				>
+					<SectionBadge color="chart-2" size="lg" className="flex items-center gap-2 py-2 leading-none">
+						{title}
+						<ExternalLink className="mt-px size-6" strokeWidth={3} />
+					</SectionBadge>
+				</a>
 
 				<SortControl
 					sortKey={localSort?.key ?? "default"}

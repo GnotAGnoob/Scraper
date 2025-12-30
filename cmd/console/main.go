@@ -46,7 +46,7 @@ func main() {
 		}
 
 		bar := getProgressBar("Scraping...", *logLevel == "debug")
-		totalChan := make(chan int)
+		infoChan := make(chan scraperLibShared.SearchInfo)
 		productsChan := make(chan *scraperLibShared.ProductResult)
 		ctx := context.Background()
 
@@ -55,10 +55,10 @@ func main() {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = scraperLib.GetProducts(ctx, search, 10, totalChan, productsChan)
+			err = scraperLib.GetProducts(ctx, search, 10, infoChan, productsChan)
 		}()
 
-		total, ok := <-totalChan
+		info, ok := <-infoChan
 		if err != nil {
 			bar.Finish()
 			log.Error().Err(err).Msg("Error while getting products")
@@ -67,9 +67,11 @@ func main() {
 
 		if !ok {
 			bar.Finish()
-			log.Error().Msg("Unexpected error while getting total products")
+			log.Error().Msg("Unexpected error while getting search info")
 			continue
 		}
+
+		total := info.Total
 
 		if total == 0 {
 			bar.Finish()

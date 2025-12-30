@@ -4,6 +4,7 @@ import (
 	"context"
 	"math"
 	"net/http"
+	"net/url"
 	"sync"
 
 	applogger "github.com/GnotAGnoob/kosik-scraper/internal/logger"
@@ -37,9 +38,9 @@ func scrapeProductAsync(ctx context.Context, index int, product *Product, client
 	productResult.Result.Value.Nutrition.Value = transformKosikSearchProductDetailToNutrition(&parsedNutritionData.Product.Detail)
 }
 
-func GetProducts(ctx context.Context, search string, maxProducts int, totalChan chan<- int, productsChan chan<- *shared.ProductResult) error {
+func GetProducts(ctx context.Context, search string, maxProducts int, infoChan chan<- shared.SearchInfo, productsChan chan<- *shared.ProductResult) error {
 	defer func() {
-		close(totalChan)
+		close(infoChan)
 		close(productsChan)
 	}()
 
@@ -53,8 +54,10 @@ func GetProducts(ctx context.Context, search string, maxProducts int, totalChan 
 		return err
 	}
 
-	logger.Debug().Str("search_url", searchURL.String()).Msg("searching kosik")
-	parsedSearchData, err := httpUtils.SendRequest[SearchResponse](ctx, &client, http.MethodGet, searchURL.String(), nil)
+	searchURLString := searchURL.String()
+	logger.Debug().Str("search_url", searchURLString).Msg("searching kosik")
+
+	parsedSearchData, err := httpUtils.SendRequest[SearchResponse](ctx, &client, http.MethodGet, searchURLString, nil)
 	if err != nil {
 		return err
 	}
@@ -62,7 +65,22 @@ func GetProducts(ctx context.Context, search string, maxProducts int, totalChan 
 	searchProductCount := parsedSearchData.Products.TotalCount
 	total := int(math.Min(float64(searchProductCount), urlParams.KosikProductLimit))
 	logger.Debug().Int("total", total).Int("max_products", maxProducts).Msg("products found")
-	totalChan <- total
+
+	// Extract search term for user-facing URL
+	searchTerm := urlParams.ExtractSearchTerm(search)
+	var userSearchURL string
+	// If searchTerm is already a full URL (e.g., category URL), use it directly
+	if parsedURL, err := url.Parse(searchTerm); err == nil && parsedURL.IsAbs() {
+		userSearchURL = searchTerm
+	} else {
+		userSearchURLObj := urlParams.GetKosikUserSearchUrl(searchTerm)
+		userSearchURL = userSearchURLObj.String()
+	}
+
+	infoChan <- shared.SearchInfo{
+		Total:     total,
+		SearchURL: userSearchURL,
+	}
 
 	if total == 0 {
 		return nil

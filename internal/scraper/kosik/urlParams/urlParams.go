@@ -99,3 +99,24 @@ func CreatePublicProductUrl(productPath string) (*url.URL, error) {
 
 	return &productUrl, nil
 }
+
+func ExtractSearchTerm(search string) string {
+	searchUrl, err := url.Parse(search)
+	if err != nil {
+		return search
+	}
+
+	if searchUrl.IsAbs() {
+		if strings.HasPrefix(searchUrl.Path, "/c") {
+			return search
+		}
+
+		searchParams := searchUrl.Query()
+		if param, ok := searchParams[searchParam]; ok {
+			return param[0]
+		}
+		return search
+	}
+
+	return search
+}

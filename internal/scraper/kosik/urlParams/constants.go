@@ -19,6 +19,7 @@ const searchTermParam = "search_term"
 const searchSlug = "vyhledavani"
 const slugParam = "slug"
 const orderByParam = "order_by"
+const orderByParamWeb = "orderBy"
 
 type orderBy struct {
 	PriceAsc      string
@@ -75,4 +76,17 @@ func GetDefaultKosikSearchParams() url.Values {
 	params.Add("limit", strconv.Itoa(KosikLimit))
 
 	return params
+}
+
+func GetKosikUserSearchUrl(searchTerm string) url.URL {
+	searchUrl := url.URL{
+		Scheme: "https",
+		Host:   kosikHost,
+		Path:   "/" + searchSlug,
+	}
+	params := url.Values{}
+	params.Set(searchParam, searchTerm)
+	params.Set(orderByParamWeb, orderByDefinitions.UnitPriceAsc)
+	searchUrl.RawQuery = params.Encode()
+	return searchUrl
 }

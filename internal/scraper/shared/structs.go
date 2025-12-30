@@ -52,3 +52,8 @@ type ScrapeResult[T any] struct {
 	Value     T
 	ScrapeErr error
 }
+
+type SearchInfo struct {
+	Total     int
+	SearchURL string
+}

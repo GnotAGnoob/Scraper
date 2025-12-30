@@ -11,6 +11,6 @@ import (
 // todo debug logs
 // todo caching?
 // todo add the ability to scrape other sites
-func GetProducts(ctx context.Context, search string, maxProducts int, totalChan chan<- int, productsChan chan<- *shared.ProductResult) error {
-	return kosik.GetProducts(ctx, search, maxProducts, totalChan, productsChan)
+func GetProducts(ctx context.Context, search string, maxProducts int, infoChan chan<- shared.SearchInfo, productsChan chan<- *shared.ProductResult) error {
+	return kosik.GetProducts(ctx, search, maxProducts, infoChan, productsChan)
 }

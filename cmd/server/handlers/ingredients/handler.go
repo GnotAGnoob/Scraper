@@ -11,7 +11,7 @@ import (
 )
 
 type request struct {
-	Text string `json:"text"`
+	Text string `json:"text" validate:"required"`
 }
 
 const maxRequestBodySize = 10 * 1024 * 1024 // 10MB

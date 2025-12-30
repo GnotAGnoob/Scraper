@@ -26,14 +26,14 @@ func drainChan[T any](ch chan T) {
 
 func openSearchAndCloseBrowser(searches ...string) {
 	for _, search := range searches {
-		totalChan := make(chan int)
+		infoChan := make(chan scraperShared.SearchInfo)
 		productsChan := make(chan *scraperShared.ProductResult)
 		ctx := context.Background()
 
-		drainChan(totalChan)
+		drainChan(infoChan)
 		drainChan(productsChan)
 
-		_ = scraper.GetProducts(ctx, search, 10, totalChan, productsChan)
+		_ = scraper.GetProducts(ctx, search, 10, infoChan, productsChan)
 	}
 }
 

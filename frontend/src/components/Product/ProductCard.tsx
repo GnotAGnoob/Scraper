@@ -33,15 +33,17 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 		<Card className="flex h-full flex-col gap-0 overflow-hidden pt-0 pb-2 transition-all hover:shadow-(--shadow-hover)">
 			<div className="relative aspect-square w-full shrink-0 overflow-hidden border-border border-b bg-white">
 				{imageUrl ? (
-					<img
-						src={imageUrl}
-						alt={name}
-						className={cn(
-							"h-full w-full object-contain p-4 transition-transform hover:scale-105",
-							isSoldOut && "opacity-70 saturate-50",
-						)}
-						loading="lazy"
-					/>
+					<a href={link} target="_blank" rel="noopener noreferrer">
+						<img
+							src={imageUrl}
+							alt={name}
+							className={cn(
+								"h-full w-full object-contain p-4 transition-transform hover:scale-105",
+								isSoldOut && "opacity-70 saturate-50",
+							)}
+							loading="lazy"
+						/>
+					</a>
 				) : (
 					<div className="flex h-full items-center justify-center bg-muted/20 text-muted-foreground">
 						<span className="text-xs">No Image</span>
@@ -54,30 +56,20 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 				)}
 			</div>
 
-			<div className="flex grow flex-col justify-between p-2">
+			<div className="flex grow flex-col justify-between px-2 pb-2">
 				<div className="space-y-0.5">
-					<TruncatedText
-						text={name}
-						className="text-left font-semibold text-sm leading-tight tracking-tight"
-						maxLines={2}
-					/>
-
 					<div className="flex flex-col">
-						{price !== undefined ? (
-							<span className="font-bold text-foreground text-xl leading-tight tracking-tight">
-								{formatCurrency.format(price)}
-							</span>
-						) : (
-							<span className="flex items-center gap-1.5 font-medium text-muted-foreground text-sm leading-tight">
-								<AlertCircle className="h-3.5 w-3.5" /> N/A
-							</span>
-						)}
-						<div className="flex justify-between">
-							{pricePerUnit?.value && (
-								<span className="font-medium text-muted-foreground text-xs leading-tight">
-									{formatCurrency.format(pricePerUnit.value)} / {pricePerUnit.unit}
+						<div className="flex items-center justify-between">
+							{price !== undefined ? (
+								<span className="font-bold text-foreground text-xl leading-tight tracking-tight">
+									{formatCurrency.format(price)}
+								</span>
+							) : (
+								<span className="flex items-center gap-1.5 font-medium text-muted-foreground text-sm leading-tight">
+									<AlertCircle className="h-3.5 w-3.5" /> N/A
 								</span>
 							)}
+
 							{productQuantity && (
 								<span className="font-medium text-muted-foreground text-xs leading-tight">
 									{[productQuantity.prefix, productQuantity.value, productQuantity.unit]
@@ -86,7 +78,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 								</span>
 							)}
 						</div>
+						{pricePerUnit?.value && (
+							<span className="font-medium text-muted-foreground text-xs leading-tight">
+								{formatCurrency.format(pricePerUnit.value)} / {pricePerUnit.unit}
+							</span>
+						)}
 					</div>
+
+					<TruncatedText
+						text={name}
+						className="text-left font-semibold text-sm leading-tight tracking-tight"
+						maxLines={2}
+					/>
 				</div>
 
 				<div className="mt-1 mb-1 h-px w-full bg-border/20" />

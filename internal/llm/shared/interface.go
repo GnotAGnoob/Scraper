@@ -3,9 +3,9 @@ package shared
 import "context"
 
 type Ingredient struct {
-	Name          string  `json:"name"`
-	OriginalName  string  `json:"originalName"`
-	QuantityGrams float64 `json:"quantityGrams"`
+	Name          string  `json:"name" validate:"required"`
+	OriginalName  string  `json:"originalName" validate:"required"`
+	QuantityGrams float64 `json:"quantityGrams" validate:"required"`
 }
 
 type LLMIngredientResult struct {

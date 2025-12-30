@@ -133,28 +133,30 @@ func (s *Service) scrapeIngredient(ctx context.Context, ingredient shared.Ingred
 		return ingredientProducts, ErrEmptyIngredientName
 	}
 
-	totalChan := make(chan int)
+	infoChan := make(chan scraperLibShared.SearchInfo)
 	productsChan := make(chan *scraperLibShared.ProductResult)
 	errChan := make(chan error, 1)
 
 	go func() {
-		errChan <- scraper.GetProducts(ctx, name, maxProducts, totalChan, productsChan)
+		errChan <- scraper.GetProducts(ctx, name, maxProducts, infoChan, productsChan)
 	}()
 
 	var total int
+
 	select {
-	case t, ok := <-totalChan:
+	case info, ok := <-infoChan:
 		if !ok {
 			// Channel closed, wait for error from goroutine
 			select {
 			case err := <-errChan:
-				logger.Error().Err(err).Msg("failed to read total products")
+				logger.Error().Err(err).Msg("failed to read search info")
 				return ingredientProducts, err
 			case <-ctx.Done():
 				return ingredientProducts, ctx.Err()
 			}
 		}
-		total = t
+		total = info.Total
+		ingredientProducts.SearchURL = info.SearchURL
 	case <-ctx.Done():
 		logger.Error().Err(ctx.Err()).Msg("context done")
 		return ingredientProducts, ctx.Err()

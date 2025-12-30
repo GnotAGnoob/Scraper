@@ -5,7 +5,7 @@ import (
 )
 
 type fieldResult[T any] struct {
-	Value T       `json:"value"`
+	Value T       `json:"value" validate:"required"`
 	Error *string `json:"error,omitempty"`
 }
 
@@ -21,14 +21,14 @@ type nutritionFields struct {
 }
 
 type pricePerUnit struct {
-	Value float64 `json:"value"`
-	Unit  string  `json:"unit"`
+	Value float64 `json:"value" validate:"required"`
+	Unit  string  `json:"unit" validate:"required"`
 }
 
 type productQuantity struct {
-	Prefix string  `json:"prefix"`
-	Value  float64 `json:"value"`
-	Unit   string  `json:"unit"`
+	Prefix string  `json:"prefix" validate:"required"`
+	Value  float64 `json:"value" validate:"required"`
+	Unit   string  `json:"unit" validate:"required"`
 }
 
 type productFields struct {
@@ -45,9 +45,10 @@ type productFields struct {
 }
 
 type IngredientProducts struct {
-	Ingredient shared.Ingredient `json:"ingredient"`
-	Source     string            `json:"source"`
-	Products   []*productFields  `json:"products"`
+	Ingredient shared.Ingredient `json:"ingredient" validate:"required"`
+	Source     string            `json:"source" validate:"required"`
+	SearchURL  string            `json:"searchUrl" validate:"required"`
+	Products   []*productFields  `json:"products" validate:"required"`
 }
 
 type RecipeResult struct {

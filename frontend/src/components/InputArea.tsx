@@ -24,7 +24,7 @@ export const InputArea = ({ value, onChange, placeholder, disabled, onSubmit }: 
 				onKeyDown={handleKeyDown}
 				placeholder={placeholder}
 				disabled={disabled}
-				className="min-h-[200px] p-4 font-mono text-lg"
+				className="min-h-60 p-4 font-mono text-lg"
 			/>
 		</div>
 	);
