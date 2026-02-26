@@ -14,16 +14,12 @@ func CreateSearchUrl(search string) (*url.URL, error) {
 		return nil, errors.New("search term is empty")
 	}
 
-	searchUrl, err := url.Parse(search)
-	if err != nil {
-		return nil, err
-	}
+	searchUrl, _ := url.Parse(search)
 
 	params := GetDefaultKosikSearchParams()
 	finalUrl := GetKosikSearchUrl()
 
-	// if the search term was a full URL
-	if searchUrl.IsAbs() {
+	if searchUrl != nil && searchUrl.IsAbs() {
 		if searchUrl.Hostname() != finalUrl.Hostname() {
 			return nil, errors.New("invalid URL: hostname does not match")
 		}
