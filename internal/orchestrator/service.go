@@ -163,6 +163,12 @@ func (s *Service) scrapeIngredient(ctx context.Context, ingredient shared.Ingred
 	}
 
 	if total == 0 {
+		scrapeErr := <-errChan
+		if scrapeErr != nil {
+			logger.Warn().Err(scrapeErr).Str("ingredient", name).Msg("scraping failed before products were returned")
+			return ingredientProducts, scrapeErr
+		}
+
 		msg := "no products found"
 		logger.Warn().Str("ingredient", name).Msg(msg)
 		return ingredientProducts, nil

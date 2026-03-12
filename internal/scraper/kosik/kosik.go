@@ -29,7 +29,7 @@ func scrapeProductAsync(ctx context.Context, index int, product *Product, client
 	}
 
 	logger.Debug().Str("product", product.Name).Int("index", index).Msg("scraping nutritions")
-	parsedNutritionData, err := httpUtils.SendRequest[ProductDetailResponse](ctx, client, http.MethodGet, apiLink.String(), nil)
+	parsedNutritionData, err := httpUtils.SendRequestWithRetry[ProductDetailResponse](ctx, client, http.MethodGet, apiLink.String(), nil)
 	if err != nil {
 		productResult.Result.Value.Nutrition.ScrapeErr = err
 		return
@@ -57,25 +57,27 @@ func GetProducts(ctx context.Context, search string, maxProducts int, infoChan c
 	searchURLString := searchURL.String()
 	logger.Debug().Str("search_url", searchURLString).Msg("searching kosik")
 
-	parsedSearchData, err := httpUtils.SendRequest[SearchResponse](ctx, &client, http.MethodGet, searchURLString, nil)
-	if err != nil {
-		return err
-	}
-
-	searchProductCount := parsedSearchData.Products.TotalCount
-	total := int(math.Min(float64(searchProductCount), urlParams.KosikProductLimit))
-	logger.Debug().Int("total", total).Int("max_products", maxProducts).Msg("products found")
-
-	// Extract search term for user-facing URL
 	searchTerm := urlParams.ExtractSearchTerm(search)
 	var userSearchURL string
-	// If searchTerm is already a full URL (e.g., category URL), use it directly
 	if parsedURL, err := url.Parse(searchTerm); err == nil && parsedURL.IsAbs() {
 		userSearchURL = searchTerm
 	} else {
 		userSearchURLObj := urlParams.GetKosikUserSearchUrl(searchTerm)
 		userSearchURL = userSearchURLObj.String()
 	}
+
+	parsedSearchData, err := httpUtils.SendRequestWithRetry[SearchResponse](ctx, &client, http.MethodGet, searchURLString, nil)
+	if err != nil {
+		infoChan <- shared.SearchInfo{
+			Total:     0,
+			SearchURL: userSearchURL,
+		}
+		return err
+	}
+
+	searchProductCount := parsedSearchData.Products.TotalCount
+	total := int(math.Min(float64(searchProductCount), urlParams.KosikProductLimit))
+	logger.Debug().Int("total", total).Int("max_products", maxProducts).Msg("products found")
 
 	infoChan <- shared.SearchInfo{
 		Total:     total,
@@ -111,7 +113,7 @@ func GetProducts(ctx context.Context, search string, maxProducts int, infoChan c
 		return err
 	}
 
-	parsedSearchMoreData, err := httpUtils.SendRequest[SearchMoreResponse](ctx, &client, http.MethodPost, searchMoreURL.String(), reqBody)
+	parsedSearchMoreData, err := httpUtils.SendRequestWithRetry[SearchMoreResponse](ctx, &client, http.MethodPost, searchMoreURL.String(), reqBody.Bytes())
 	if err != nil {
 		return err
 	}
