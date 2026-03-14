@@ -10,3 +10,4 @@ count.txt
 .wrangler
 src/generated
 src/routeTree.gen.ts
+tsconfig.tsbuildinfo

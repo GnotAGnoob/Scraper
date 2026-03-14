@@ -21,10 +21,14 @@ const (
 	productSourceKosik = "kosik"
 )
 
+const maxQueries = 20
+
 var (
 	ErrEmptyRecipe         = errors.New("recipe text is empty")
 	ErrEmptyIngredientName = errors.New("empty ingredient name")
 	ErrNilConfig           = errors.New("config is nil")
+	ErrEmptyQueries        = errors.New("no search queries provided")
+	ErrTooManyQueries      = errors.New("too many search queries")
 )
 
 type Service struct {
@@ -73,6 +77,48 @@ func (s *Service) ProcessTextToProducts(ctx context.Context, text string) (*Reci
 
 	return &RecipeResult{
 		Recipe:              llmResult.Recipe,
+		IngredientsProducts: scrapedIngredients,
+	}, nil
+}
+
+func (s *Service) ProcessDirectSearch(ctx context.Context, queries []string) (*RecipeResult, error) {
+	if len(queries) == 0 {
+		return nil, ErrEmptyQueries
+	}
+
+	if len(queries) > maxQueries {
+		return nil, ErrTooManyQueries
+	}
+
+	logger := applogger.LoggerFromContext(ctx)
+
+	// Build synthetic ingredients from raw queries so we can reuse scrapeIngredients
+	ingredients := make([]shared.Ingredient, 0, len(queries))
+	for _, q := range queries {
+		trimmed := strings.TrimSpace(q)
+		if trimmed == "" {
+			continue
+		}
+
+		ingredients = append(ingredients, shared.Ingredient{
+			Name:         trimmed,
+			OriginalName: trimmed,
+		})
+	}
+
+	if len(ingredients) == 0 {
+		return nil, ErrEmptyQueries
+	}
+
+	logger.Info().Int("queries_count", len(ingredients)).Msg("processing direct search")
+
+	scrapedIngredients, err := s.scrapeIngredients(ctx, ingredients)
+	if err != nil {
+		logger.Error().Err(err).Msg("direct search scraping failed")
+		return nil, err
+	}
+
+	return &RecipeResult{
 		IngredientsProducts: scrapedIngredients,
 	}, nil
 }

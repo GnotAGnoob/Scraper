@@ -19,7 +19,7 @@ func Load() (*Config, error) {
 	}
 
 	portDefault := internalconfig.GetEnvAsInt("SERVER_PORT", 8080)
-	originsDefault := internalconfig.GetEnv("SERVER_ALLOWED_ORIGINS", "http://localhost:5173")
+	originsDefault := internalconfig.GetEnv("SERVER_ALLOWED_ORIGINS", "http://localhost:3100")
 
 	portFlag := flag.Int("port", portDefault, "HTTP server port")
 	originsFlag := flag.String("allowed-origins", originsDefault, "Comma-separated allowed origins")

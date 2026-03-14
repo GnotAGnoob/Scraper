@@ -8,6 +8,7 @@ import (
 
 	healthhandler "github.com/GnotAGnoob/kosik-scraper/cmd/server/handlers/health"
 	ingredientshandler "github.com/GnotAGnoob/kosik-scraper/cmd/server/handlers/ingredients"
+	searchhandler "github.com/GnotAGnoob/kosik-scraper/cmd/server/handlers/search"
 	servermiddleware "github.com/GnotAGnoob/kosik-scraper/cmd/server/middleware"
 )
 
@@ -28,6 +29,7 @@ func (s *server) buildRouter() chi.Router {
 	r.Get("/health", healthhandler.HealthHandler(s.cfg))
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Post("/text/products", ingredientshandler.TextProductsHandler(s.orchestrator))
+		api.Post("/search/products", searchhandler.SearchProductsHandler(s.orchestrator))
 	})
 
 	r.Get("/swagger/*", httpSwagger.WrapHandler)

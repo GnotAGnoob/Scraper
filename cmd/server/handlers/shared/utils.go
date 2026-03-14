@@ -34,6 +34,12 @@ func OrchestratorError(w http.ResponseWriter, r *http.Request, err error) {
 	case errors.Is(err, orchestrator.ErrEmptyRecipe):
 		logger.Warn().Msg("empty recipe")
 		Error(w, r, http.StatusBadRequest, "bad request")
+	case errors.Is(err, orchestrator.ErrEmptyQueries):
+		logger.Warn().Msg("empty queries")
+		Error(w, r, http.StatusBadRequest, "at least one search query is required")
+	case errors.Is(err, orchestrator.ErrTooManyQueries):
+		logger.Warn().Msg("too many queries")
+		Error(w, r, http.StatusBadRequest, "too many search queries (max 20)")
 	default:
 		logger.Error().Err(err).Msg("orchestrator error")
 		Error(w, r, http.StatusInternalServerError, "internal server error")

@@ -44,10 +44,10 @@ bun --bun run check
 
 ## Shadcn
 
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+Add components using the latest version of [Shadcn](https://www.neobrutalism.dev/).
 
 ```bash
-pnpx shadcn@latest add button
+bunx --bun shadcn@latest add https://neobrutalism.dev/r/alert-dialog.json
 ```
 
 
