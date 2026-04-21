@@ -26,6 +26,28 @@ type ProductQuantity struct {
 	Unit   string
 }
 
+type SaleLabel struct {
+	Name       string
+	Background string
+	StyleKey   string
+	Priority   int
+}
+
+type CumulativePrice struct {
+	Quantity     int
+	Price        float64
+	PricePerUnit PricePerUnit
+}
+
+type Sales struct {
+	RecommendedPrice   *float64
+	PercentageDiscount *int
+	ActionLabel        *string
+	Labels             []SaleLabel
+	MembershipPrice    *float64
+	CumulativePrices   []CumulativePrice
+}
+
 type Product struct {
 	Name            ScrapeResult[string]
 	Price           ScrapeResult[float64]
@@ -36,6 +58,7 @@ type Product struct {
 	Link            ScrapeResult[*url.URL]
 	ImageUrl        ScrapeResult[*url.URL]
 	IsSoldOut       ScrapeResult[bool]
+	Sales           ScrapeResult[*Sales]
 	Nutrition       ScrapeResult[*Nutrition]
 }
 
