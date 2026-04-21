@@ -1,44 +1,22 @@
 package kosik
 
 type Product struct {
-	ID    int     `json:"id"`
-	Name  string  `json:"name"`
-	Image string  `json:"image"`
-	URL   string  `json:"url"`
-	Price float64 `json:"price"`
-	// ReturnablePackagePrice      float64           `json:"returnablePackagePrice"`
-	Unit string `json:"unit"`
-	// RecommendedPrice            float64           `json:"recommendedPrice"`
-	// PercentageDiscount          int               `json:"percentageDiscount"`
-	ProductQuantity *productQuantity `json:"productQuantity"`
-	// Labels                      []label           `json:"labels"`
-	// ActionLabel                 *string           `json:"actionLabel"`
-	// CountryCode                 string            `json:"countryCode"`
-	// Pictographs                 []string          `json:"pictographs"`
-	MaxInCart int `json:"maxInCart"`
-	// LimitInCart                 *int              `json:"limitInCart"`
-	// FirstOrderDay               *string           `json:"firstOrderDay"`
-	// LastOrderDay                *string           `json:"lastOrderDay"`
-	// PlannedStock                *string           `json:"plannedStock"`
-	// RelatedProduct              *string           `json:"relatedProduct"`
-	// MainCategory                mainCategory      `json:"mainCategory"`
-	PricePerUnit pricePerUnit `json:"pricePerUnit"`
-	// CumulativePrices []cumulativePrice `json:"cumulativePrices"`
-	// GiftIDs                     []string          `json:"giftIds"`
-	// Favorite                    bool              `json:"favorite"`
-	// Purchased                   bool              `json:"purchased"`
-	// UnitStep                    float64           `json:"unitStep"`
-	// VendorID                    int               `json:"vendorId"`
-	// PharmacyCertificate         *string           `json:"pharmacyCertificate"`
-	// ProductGroups               []any     `json:"productGroups"`
-	// RecommendedSellPrice        float64           `json:"recommendedSellPrice"`
-	// Detail                      *string           `json:"detail"`
-	// HasAssociatedProducts       bool              `json:"hasAssociatedProducts"`
-	// ELicence                    bool              `json:"eLicence"`
-	// MarketplaceVendor           *string           `json:"marketplaceVendor"`
-	// AssociationCode             *string           `json:"associationCode"`
-	// LoyaltyClubBenefitsPrice    *float64          `json:"loyaltyClubBenefitsPrice"`
-	// HasLoyaltyClubBenefitsPrice bool              `json:"hasLoyaltyClubBenefitsPrice"`
+	ID                          int               `json:"id"`
+	Name                        string            `json:"name"`
+	Image                       string            `json:"image"`
+	URL                         string            `json:"url"`
+	Price                       float64           `json:"price"`
+	Unit                        string            `json:"unit"`
+	RecommendedPrice            float64           `json:"recommendedPrice"`
+	PercentageDiscount          int               `json:"percentageDiscount"`
+	ProductQuantity             *productQuantity  `json:"productQuantity"`
+	Labels                      []label           `json:"labels"`
+	ActionLabel                 *string           `json:"actionLabel"`
+	MaxInCart                   int               `json:"maxInCart"`
+	PricePerUnit                pricePerUnit      `json:"pricePerUnit"`
+	CumulativePrices            []cumulativePrice `json:"cumulativePrices"`
+	LoyaltyClubBenefitsPrice    *float64          `json:"loyaltyClubBenefitsPrice"`
+	HasLoyaltyClubBenefitsPrice bool              `json:"hasLoyaltyClubBenefitsPrice"`
 }
 
 type productQuantity struct {
@@ -47,15 +25,15 @@ type productQuantity struct {
 	Unit   string  `json:"unit"`
 }
 
-// type label struct {
-// 	ID             int    `json:"id"`
-// 	Name           string `json:"name"`
-// 	URL            string `json:"url"`
-// 	Background     string `json:"background"`
-// 	Priority       int    `json:"priority"`
-// 	StyleKey       string `json:"styleKey"`
-// 	ExcludeFromBox bool   `json:"excludeFromBox"`
-// }
+type label struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	URL            string `json:"url"`
+	Background     string `json:"background"`
+	Priority       int    `json:"priority"`
+	StyleKey       string `json:"styleKey"`
+	ExcludeFromBox bool   `json:"excludeFromBox"`
+}
 
 // type mainCategory struct {
 // 	ID          int     `json:"id"`
@@ -71,12 +49,12 @@ type pricePerUnit struct {
 	Unit  string  `json:"unit"`
 }
 
-// type cumulativePrice struct {
-// 	Quantity        int          `json:"quantity"`
-// 	Price           float64      `json:"price"`
-// 	PricePerUnit    pricePerUnit `json:"pricePerUnit"`
-// 	AssociationCode *string      `json:"associationCode"`
-// }
+type cumulativePrice struct {
+	Quantity        int          `json:"quantity"`
+	Price           float64      `json:"price"`
+	PricePerUnit    pricePerUnit `json:"pricePerUnit"`
+	AssociationCode *string      `json:"associationCode"`
+}
 
 // type brand struct {
 // 	ID   int    `json:"id"`

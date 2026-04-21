@@ -33,11 +33,57 @@ func mapProductFields(product *scraperLibShared.Product) *productFields {
 		Link:            mapURLField(product.Link),
 		ImageURL:        mapImageURLField(product.ImageUrl),
 		IsSoldOut:       mapField(product.IsSoldOut),
+		Sales:           mapSalesField(product.Sales),
 	}
 
 	fields.Nutrition = mapNutritionField(product.Nutrition)
 
 	return fields
+}
+
+func mapSalesField(result scraperLibShared.ScrapeResult[*scraperLibShared.Sales]) fieldResult[*salesFields] {
+	res := fieldResult[*salesFields]{Error: errorString(result.ScrapeErr)}
+	if result.Value == nil {
+		return res
+	}
+
+	sales := &salesFields{
+		RecommendedPrice:   result.Value.RecommendedPrice,
+		PercentageDiscount: result.Value.PercentageDiscount,
+		ActionLabel:        result.Value.ActionLabel,
+		MembershipPrice:    result.Value.MembershipPrice,
+	}
+
+	if len(result.Value.Labels) > 0 {
+		labels := make([]saleLabel, len(result.Value.Labels))
+		for i, l := range result.Value.Labels {
+			labels[i] = saleLabel{
+				Name:       l.Name,
+				Background: l.Background,
+				StyleKey:   l.StyleKey,
+				Priority:   l.Priority,
+			}
+		}
+		sales.Labels = labels
+	}
+
+	if len(result.Value.CumulativePrices) > 0 {
+		cumulative := make([]cumulativePriceFields, len(result.Value.CumulativePrices))
+		for i, cp := range result.Value.CumulativePrices {
+			cumulative[i] = cumulativePriceFields{
+				Quantity: cp.Quantity,
+				Price:    cp.Price,
+				PricePerUnit: pricePerUnit{
+					Value: cp.PricePerUnit.Value,
+					Unit:  cp.PricePerUnit.Unit,
+				},
+			}
+		}
+		sales.CumulativePrices = cumulative
+	}
+
+	res.Value = sales
+	return res
 }
 
 func mapNutritionField(nutrition scraperLibShared.ScrapeResult[*scraperLibShared.Nutrition]) fieldResult[*nutritionFields] {

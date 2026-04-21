@@ -31,6 +31,28 @@ type productQuantity struct {
 	Unit   string  `json:"unit" validate:"required"`
 }
 
+type saleLabel struct {
+	Name       string `json:"name" validate:"required"`
+	Background string `json:"background"`
+	StyleKey   string `json:"styleKey"`
+	Priority   int    `json:"priority"`
+}
+
+type cumulativePriceFields struct {
+	Quantity     int          `json:"quantity" validate:"required"`
+	Price        float64      `json:"price" validate:"required"`
+	PricePerUnit pricePerUnit `json:"pricePerUnit"`
+}
+
+type salesFields struct {
+	RecommendedPrice   *float64                `json:"recommendedPrice,omitempty"`
+	PercentageDiscount *int                    `json:"percentageDiscount,omitempty"`
+	ActionLabel        *string                 `json:"actionLabel,omitempty"`
+	Labels             []saleLabel             `json:"labels,omitempty"`
+	MembershipPrice    *float64                `json:"membershipPrice,omitempty"`
+	CumulativePrices   []cumulativePriceFields `json:"cumulativePrices,omitempty"`
+}
+
 type productFields struct {
 	Name            fieldResult[string]           `json:"name"`
 	Price           fieldResult[float64]          `json:"price"`
@@ -41,6 +63,7 @@ type productFields struct {
 	Link            fieldResult[*string]          `json:"link"`
 	ImageURL        fieldResult[*string]          `json:"imageUrl"`
 	IsSoldOut       fieldResult[bool]             `json:"isSoldOut"`
+	Sales           fieldResult[*salesFields]     `json:"sales"`
 	Nutrition       fieldResult[*nutritionFields] `json:"nutrition"`
 }
 

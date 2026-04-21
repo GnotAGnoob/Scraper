@@ -45,6 +45,8 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 		}
 	}
 
+	sales := extractSales(productData)
+
 	return &shared.ProductResult{
 		Index: index,
 		Result: &shared.ReturnProduct{ScrapeResult: shared.ScrapeResult[*shared.Product]{
@@ -58,10 +60,80 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 				Link:            urlResult,
 				ImageUrl:        imageResult,
 				IsSoldOut:       shared.ScrapeResult[bool]{Value: productData.MaxInCart == 0},
+				Sales:           shared.ScrapeResult[*shared.Sales]{Value: sales},
 			},
 			ScrapeErr: nil,
 		}},
 	}
+}
+
+func extractSales(productData *Product) *shared.Sales {
+	sales := &shared.Sales{}
+	hasSale := false
+
+	if productData.RecommendedPrice > 0 && productData.RecommendedPrice > productData.Price {
+		recommended := productData.RecommendedPrice
+		sales.RecommendedPrice = &recommended
+		hasSale = true
+	}
+
+	if productData.PercentageDiscount > 0 {
+		discount := productData.PercentageDiscount
+		sales.PercentageDiscount = &discount
+		hasSale = true
+	}
+
+	if productData.ActionLabel != nil && *productData.ActionLabel != "" {
+		actionLabel := *productData.ActionLabel
+		sales.ActionLabel = &actionLabel
+		hasSale = true
+	}
+
+	if len(productData.Labels) > 0 {
+		labels := make([]shared.SaleLabel, 0, len(productData.Labels))
+		for _, l := range productData.Labels {
+			if l.ExcludeFromBox {
+				continue
+			}
+			labels = append(labels, shared.SaleLabel{
+				Name:       l.Name,
+				Background: l.Background,
+				StyleKey:   l.StyleKey,
+				Priority:   l.Priority,
+			})
+		}
+		if len(labels) > 0 {
+			sales.Labels = labels
+			hasSale = true
+		}
+	}
+
+	if productData.HasLoyaltyClubBenefitsPrice && productData.LoyaltyClubBenefitsPrice != nil {
+		member := *productData.LoyaltyClubBenefitsPrice
+		sales.MembershipPrice = &member
+		hasSale = true
+	}
+
+	if len(productData.CumulativePrices) > 0 {
+		cumulative := make([]shared.CumulativePrice, 0, len(productData.CumulativePrices))
+		for _, cp := range productData.CumulativePrices {
+			cumulative = append(cumulative, shared.CumulativePrice{
+				Quantity: cp.Quantity,
+				Price:    cp.Price,
+				PricePerUnit: shared.PricePerUnit{
+					Value: cp.PricePerUnit.Price,
+					Unit:  cp.PricePerUnit.Unit,
+				},
+			})
+		}
+		sales.CumulativePrices = cumulative
+		hasSale = true
+	}
+
+	if !hasSale {
+		return nil
+	}
+	return sales
 }
 
 func transformKosikSearchProductDetailToNutrition(detailData *ProductDetail) *shared.Nutrition {
