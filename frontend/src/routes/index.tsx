@@ -1,11 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChefHat, Sparkles } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { ProductGrid } from "@/components/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import type { OrchestratorIngredientProducts } from "@/generated/kosik";
 import { recipeApi } from "@/lib/api";
 
 export const Route = createFileRoute("/")({
@@ -25,15 +24,18 @@ Ingredients:
 - pinch of salt`;
 
 function HomePage() {
+	const recipeId = useId();
 	const [recipeText, setRecipeText] = useState("");
-	const [products, setProducts] = useState<OrchestratorIngredientProducts[]>([]);
 
 	const mutation = useMutation({
 		mutationFn: (text: string) => recipeApi.parseRecipe(text),
-		onSuccess: (data) => {
-			setProducts(data);
-		},
 	});
+
+	const products = mutation.isSuccess ? mutation.data : [];
+	const productCount = products.reduce(
+		(count, group) => count + (group.products?.filter((product) => product != null).length ?? 0),
+		0,
+	);
 
 	const handleSubmit = useCallback(
 		(e: React.FormEvent) => {
@@ -65,11 +67,11 @@ function HomePage() {
 
 			<form onSubmit={handleSubmit} className="mb-12">
 				<div className="mb-4">
-					<label htmlFor="recipe" className="mb-2 block text-lg font-heading">
+					<label htmlFor={recipeId} className="mb-2 block text-lg font-heading">
 						Your Recipe
 					</label>
 					<Textarea
-						key={recipeText}
+						id={recipeId}
 						value={recipeText}
 						onChange={(e) => setRecipeText(e.target.value)}
 						placeholder="Paste your recipe here... Include ingredients with quantities!"
@@ -113,16 +115,16 @@ function HomePage() {
 				)}
 			</form>
 
-			{(mutation.isPending || products.length > 0 || mutation.isError) && (
+			{(mutation.isPending || mutation.isSuccess) && (
 				<div>
 					<h2 className="mb-6 text-3xl font-heading">
-						{mutation.isPending ? "Finding Products..." : `Found ${products.length} Products`}
+						{mutation.isPending ? "Finding Products..." : `Found ${productCount} Products`}
 					</h2>
 					<ProductGrid products={products} isLoading={mutation.isPending} />
 				</div>
 			)}
 
-			{!mutation.isPending && !products.length && !mutation.isError && recipeText && (
+			{mutation.isIdle && recipeText && (
 				<div className="text-center">
 					<p className="text-lg text-foreground/60">Click "Find Products" to start searching</p>
 				</div>

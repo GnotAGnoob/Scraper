@@ -23,14 +23,15 @@ func transformProducts(products []*scraperLibShared.ReturnProduct) []*productFie
 
 func mapProductFields(product *scraperLibShared.Product) *productFields {
 	fields := &productFields{
-		Name:         mapField(product.Name),
-		Price:        mapField(product.Price),
-		Currency:     mapField(product.Currency),
-		Unit:         mapField(product.Unit),
-		PricePerUnit: mapField(product.PricePerUnit),
-		Link:         mapURLField(product.Link),
-		ImageURL:     mapURLField(product.ImageUrl),
-		IsSoldOut:    mapField(product.IsSoldOut),
+		Name:          mapField(product.Name),
+		Price:         mapField(product.Price),
+		Currency:      mapField(product.Currency),
+		Unit:          mapField(product.Unit),
+		PricePerUnit:  mapField(product.PricePerUnit),
+		Link:          mapURLField(product.Link),
+		StorefrontURL: mapURLField(product.StorefrontURL),
+		ImageURL:      mapURLField(product.ImageUrl),
+		IsSoldOut:     mapField(product.IsSoldOut),
 	}
 
 	fields.Nutrition = mapNutritionField(product.Nutrition)

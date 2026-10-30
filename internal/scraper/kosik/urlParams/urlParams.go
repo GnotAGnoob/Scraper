@@ -84,3 +84,24 @@ func CreateProductUrl(productPath string) (*url.URL, error) {
 
 	return &productUrl, nil
 }
+
+// CreateStorefrontURL uses the product URL path supplied by the search API.
+// The detail API URL remains separate because the scraper fetches JSON from it.
+func CreateStorefrontURL(productPath string) (*url.URL, error) {
+	if productPath == "" {
+		return nil, errors.New("product path is empty")
+	}
+	path, err := url.Parse(productPath)
+	if err != nil {
+		return nil, err
+	}
+	if path.IsAbs() || path.Host != "" || strings.HasPrefix(path.Path, "/api/") {
+		return nil, errors.New("expected a storefront product path")
+	}
+	storefront := GetKosikUrl()
+	storefront.Path, err = url.JoinPath("/", path.Path)
+	if err != nil {
+		return nil, err
+	}
+	return &storefront, nil
+}

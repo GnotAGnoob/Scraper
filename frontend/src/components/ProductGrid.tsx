@@ -1,9 +1,9 @@
-import type { OrchestratorIngredientProducts } from "@/generated/kosik";
+import type { IngredientProducts } from "@/lib/api";
 import { ProductCard } from "./ProductCard";
 import { Skeleton } from "./ui/skeleton";
 
 interface ProductGridProps {
-	products: OrchestratorIngredientProducts[];
+	products: IngredientProducts[];
 	isLoading?: boolean;
 }
 
@@ -35,12 +35,14 @@ export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
 		);
 	}
 
-	const allProductCards = products.flatMap((ingredientProduct) =>
-		(ingredientProduct.products ?? []).map((product, productIndex) => ({
-			ingredientProduct,
-			product,
-			key: `${ingredientProduct.ingredient?.name ?? "unknown"}-${productIndex}`,
-		})),
+	const allProductCards = products.flatMap((ingredientProduct, groupIndex) =>
+		(ingredientProduct.products ?? [])
+			.filter((product) => product != null)
+			.map((product, productIndex) => ({
+				ingredientProduct,
+				product,
+				key: `${groupIndex}-${productIndex}`,
+			})),
 	);
 
 	if (allProductCards.length === 0) {
@@ -48,7 +50,9 @@ export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
 			<div className="flex min-h-[400px] items-center justify-center">
 				<div className="text-center">
 					<p className="text-2xl font-heading text-foreground/60">No products found</p>
-					<p className="mt-2 text-foreground/40">Try entering a recipe to find matching products</p>
+					<p className="mt-2 text-foreground/40">
+						Try another recipe or include more specific ingredient names
+					</p>
 				</div>
 			</div>
 		);

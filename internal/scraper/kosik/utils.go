@@ -28,6 +28,9 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 	linkUrl, err := urlParams.CreateProductUrl(productData.URL)
 	urlResult := shared.ScrapeResult[*url.URL]{Value: linkUrl, ScrapeErr: err}
 
+	storefrontURL, err := urlParams.CreateStorefrontURL(productData.URL)
+	storefrontResult := shared.ScrapeResult[*url.URL]{Value: storefrontURL, ScrapeErr: err}
+
 	imageUrl, err := url.Parse(productData.Image)
 	imageResult := shared.ScrapeResult[*url.URL]{Value: imageUrl, ScrapeErr: err}
 
@@ -40,14 +43,15 @@ func transformKosikSearchProductToProduct(index int, productData *Product) *shar
 		Index: index,
 		Result: &shared.ReturnProduct{ScrapeResult: shared.ScrapeResult[*shared.Product]{
 			Value: &shared.Product{
-				Name:         shared.ScrapeResult[string]{Value: productData.Name},
-				Price:        shared.ScrapeResult[float64]{Value: productData.Price},
-				Currency:     shared.ScrapeResult[string]{Value: "CZK"},
-				PricePerUnit: shared.ScrapeResult[shared.PricePerUnit]{Value: pricePerUnit},
-				Unit:         shared.ScrapeResult[string]{Value: productData.Unit},
-				Link:         urlResult,
-				ImageUrl:     imageResult,
-				IsSoldOut:    shared.ScrapeResult[bool]{Value: productData.MaxInCart == 0},
+				Name:          shared.ScrapeResult[string]{Value: productData.Name},
+				Price:         shared.ScrapeResult[float64]{Value: productData.Price},
+				Currency:      shared.ScrapeResult[string]{Value: "CZK"},
+				PricePerUnit:  shared.ScrapeResult[shared.PricePerUnit]{Value: pricePerUnit},
+				Unit:          shared.ScrapeResult[string]{Value: productData.Unit},
+				Link:          urlResult,
+				StorefrontURL: storefrontResult,
+				ImageUrl:      imageResult,
+				IsSoldOut:     shared.ScrapeResult[bool]{Value: productData.MaxInCart == 0},
 			},
 			ScrapeErr: nil,
 		}},

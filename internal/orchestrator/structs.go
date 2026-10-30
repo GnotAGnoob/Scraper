@@ -22,15 +22,16 @@ type nutritionFields struct {
 }
 
 type productFields struct {
-	Name         fieldResult[string]                        `json:"name"`
-	Price        fieldResult[float64]                       `json:"price"`
-	Currency     fieldResult[string]                        `json:"currency"`
-	Unit         fieldResult[string]                        `json:"unit"`
-	PricePerUnit fieldResult[scraperLibShared.PricePerUnit] `json:"pricePerUnit"`
-	Link         fieldResult[*string]                       `json:"link"`
-	ImageURL     fieldResult[*string]                       `json:"imageUrl"`
-	IsSoldOut    fieldResult[bool]                          `json:"isSoldOut"`
-	Nutrition    fieldResult[*nutritionFields]              `json:"nutrition"`
+	StorefrontURL fieldResult[*string]                       `json:"storefrontUrl"`
+	Name          fieldResult[string]                        `json:"name"`
+	Price         fieldResult[float64]                       `json:"price"`
+	Currency      fieldResult[string]                        `json:"currency"`
+	Unit          fieldResult[string]                        `json:"unit"`
+	PricePerUnit  fieldResult[scraperLibShared.PricePerUnit] `json:"pricePerUnit"`
+	Link          fieldResult[*string]                       `json:"link"`
+	ImageURL      fieldResult[*string]                       `json:"imageUrl"`
+	IsSoldOut     fieldResult[bool]                          `json:"isSoldOut"`
+	Nutrition     fieldResult[*nutritionFields]              `json:"nutrition"`
 }
 
 type IngredientProducts struct {

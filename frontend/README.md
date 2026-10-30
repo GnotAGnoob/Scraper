@@ -39,6 +39,8 @@ make frontend-install
 bun install
 ```
 
+Before starting or building the frontend, generate the API schema from the repository root with `make swagger`. This requires the `swag` CLI. The frontend scripts generate TypeScript types from `docs/swagger.json`.
+
 ### Development
 
 ```bash
@@ -49,7 +51,7 @@ make frontend
 bun run dev
 ```
 
-The app will be available at http://localhost:3000
+The app will be available at http://localhost:3000. Set `SERVER_ALLOWED_ORIGINS=http://localhost:3000` in the backend environment to allow requests from the frontend.
 
 ### Environment Variables
 
@@ -148,7 +150,7 @@ Then customize them to match the neobrutalism aesthetic.
 
 The frontend communicates with the Go backend via REST API:
 
-- `POST /api/v1/recipe` - Parse recipe and get matching products
+- `POST /api/v1/text/products` - Parse recipe and get matching products
 
 See `src/lib/api.ts` for the API client implementation.
 
